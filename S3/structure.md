@@ -28,31 +28,34 @@
 
 -     <agency>
       └── <docket id>
-          ├── comments_extracted_text
-          │   ├── <tool name>
-          │   │   ├── <comment id>_attachment_<counter>_extracted.txt
-          │   │   └── ...
-          │   └── ... <other tools>
-          ├── entity_extracted
-          │   ├── <tool name>
-          │   │   ├── <comment id>_attachment_<counter>_extracted.txt
-          │   │   └── ...
-          │   └── ... <other tools>
-          ├── ai_summary_extracted
-          │   ├── <tool name>
-          │   │   ├── <comment id>_attachment_<counter>_extracted.txt
-          │   │   └── ...
-          │   └── ... <other tools>
-          ├── topic_identification_extracted
-          │   ├── <tool name>
-          │   │   ├── <comment id>_attachment_<counter>_extracted.txt
-          │   │   └── ...
-          │   └── ... <other tools>
-          └── documents_extracted_text
-              ├── <tool name>
-              │   ├── <document id>_content_extracted.txt
-              │   └── ...
-              └── ... <other tools>
+            ├── extracted_data
+            │   ├── comments_extracted_text
+            │   │   ├── <tool name>
+            │   │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+            │   │   │   └── ...
+            │   │   └── ... <other tools>
+            │   └── documents_extracted_text
+            │       ├── <tool name>
+            │       │   ├── <document id>_content_extracted.txt
+            │       │   └── ...
+            │       └── ... <other tools>
+            └── summarized_data
+                ├── entity_extracted
+                │   ├── <tool name>
+                │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+                │   │   └── ...
+                │   └── ... <other tools>
+                ├── ai_summary_extracted
+                │   ├── <tool name>
+                │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+                │   │   └── ...
+                │   └── ... <other tools>
+                └── topic_identification_extracted
+                │   ├── <tool name>
+                │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+                │   │   └── ...
+                │   └── ... <other tools>
+        
 
 
 # Version 2
