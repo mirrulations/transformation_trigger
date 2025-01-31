@@ -54,6 +54,11 @@
           │   │   ├── <comment id>_attachment_<counter>_extracted.txt
           │   │   └── ...
           │   └── ... <other tools>
+          ├── topic_identification_extracted
+          │   ├── <tool name>
+          │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+          │   │   └── ...
+          │   └── ... <other tools>
           └── documents_extracted_text
               ├── <tool name>
               │   ├── <document id>_content_extracted.txt
