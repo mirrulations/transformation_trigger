@@ -13,11 +13,6 @@
               ├── comments
               │   ├── <comment id>.json
               │   └── ...
-              ├── comments_extracted_text
-              │   ├── <tool name>
-              │   |   ├── <comment id>_attachment_<counter>_extracted.txt
-              │   |   └── ...
-              |   └─ ... <other tools>
               ├── docket
               │   ├── <docket id>.json
               |   └── ...
@@ -25,11 +20,7 @@
               │   ├── <document id>.json
               │   ├── <document id>_content.htm
               │   └── ...
-              └── documents_extracted_text
-                  ├── <tool name>
-                  |   ├── <document id>_content_extracted.txt
-                  |   └── ...
-                  └─ ... <other tools>
+
 
 
 
