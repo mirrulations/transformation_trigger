@@ -1,4 +1,4 @@
-Raw Data Structure Overview 
+# Raw Data Structure Overview 
 
 raw_data
 └── <agency>
@@ -16,27 +16,27 @@ raw_data
             │   └── ...
             ├── comments_extracted_text
             │   ├── <tool name>
-            │   │   ├── <comment id>_attachment_<counter>_extracted.txt
-            │   │   └── ...
-            │   └── ... <other tools>
+            │   |   ├── <comment id>_attachment_<counter>_extracted.txt
+            │   |   └── ...
+            |   └─ ... <other tools>
             ├── docket
             │   ├── <docket id>.json
-            │   └── ...
+            |   └── ...
             ├── documents
             │   ├── <document id>.json
             │   ├── <document id>_content.htm
             │   └── ...
             └── documents_extracted_text
                 ├── <tool name>
-                │   ├── <document id>_content_extracted.txt
-                │   └── ...
-                └── ... <other tools>
+                |   ├── <document id>_content_extracted.txt
+                |   └── ...
+                └─ ... <other tools>
 
 
 
-Ideas: 
+# Ideas: 
 
-Derived data folder Structure: 
+# Derived data folder Structure: 
 
 derived_data
 └── <agency>
@@ -51,7 +51,7 @@ derived_data
         │   │   ├── <comment id>_attachment_<counter>_extracted.txt
         │   │   └── ...
         │   └── ... <other tools>
-        ├── ai_summary_extracted
+         ├── ai_summary_extracted
         │   ├── <tool name>
         │   │   ├── <comment id>_attachment_<counter>_extracted.txt
         │   │   └── ...
@@ -61,3 +61,4 @@ derived_data
             │   ├── <document id>_content_extracted.txt
             │   └── ...
             └── ... <other tools>
+
