@@ -16,25 +16,21 @@ raw_data
             │   └── ...
             ├── comments_extracted_text
             │   ├── <tool name>
-            │   |   ├── <comment id>_attachment_<counter>_extracted.txt
-            │   |   └── ...
-            |   └─ ... <other tools>
+            │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+            │   │   └── ...
+            │   └── ... <other tools>
             ├── docket
             │   ├── <docket id>.json
-            |   └── ...
+            │   └── ...
             ├── documents
             │   ├── <document id>.json
             │   ├── <document id>_content.htm
             │   └── ...
             └── documents_extracted_text
                 ├── <tool name>
-                |   ├── <document id>_content_extracted.txt
-                |   └── ...
-                └─ ... <other tools>
-
-
-
-
+                │   ├── <document id>_content_extracted.txt
+                │   └── ...
+                └── ... <other tools>
 
 
 
