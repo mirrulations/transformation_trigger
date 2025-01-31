@@ -1,6 +1,8 @@
-# Version 1
+# S3 Folder Structure
 
-## Raw Data Structure Overview 
+## Current Data Structure Overview 
+
+This is the current s3 layout
 
 -     <agency>
       └── <docket id>
@@ -24,7 +26,10 @@
               │   └── ...
 
 
-## Derived data folder Structure: 
+## Candidate Folder Structures
+Derived data folder Structure: 
+
+### Candidate 1 Folder Structure
 
 -     <agency>
       └── <docket id>
@@ -58,7 +63,7 @@
         
 
 
-# Version 2
+### Candidate 2 Folder Structure
 
 -     <agency>
       └── <docket id>
@@ -107,3 +112,51 @@
                   │   ├── <document id>_content_extracted.txt
                   │   └── ...
                   └── ... <other tools>
+
+
+### Candidate 3 Folder Structure
+
+-     <agency>
+      └── <docket id>
+          ├── raw_data
+              ├── binary
+              │   ├── comments_attachments
+              │   │   ├── <comment id>_attachement_<counter>.<extension>
+              │   │   └── ...
+              │   ├── documents_attachments
+              │   │   ├── <document id>_attachement_<counter>.<extension>
+              │   │   └── ...
+              └── text
+                  ├── comments
+                  │   ├── <comment id>.json
+                  │   └── ...
+                  ├── docket
+                  │   ├── <docket id>.json
+                  |   └── ...
+                  ├── documents
+                  │   ├── <document id>.json
+                  │   ├── <document id>_content.htm
+                  │   └── ...
+          ├── derived_data
+              ├── mirrulations
+              │   ├── comment_extraction
+              │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+              │   │   └── ...
+              │   ├── entity_extraction
+              │   ├── <tool name>
+              │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+              │   │   └── ...
+              │   ├──  documents_extracted_text
+              │   │   ├── <document id>_content_extracted.txt   
+              │   ├── <tool name>
+              │   │   ├── <comment id>_attachment_<counter>_extracted.txt
+              │   │   └── ...
+              │   └── ... <other tools>
+              ├── chatgpt
+              ├── ├──  sentiment_summary_extraction
+              ├── ├──  topic_extractions                    
+              ├── careset
+              │   ├── diff_graph
+              │   │   └── ...  
+
+
