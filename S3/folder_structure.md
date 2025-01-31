@@ -152,10 +152,10 @@ Derived data folder Structure:
               │   │   ├── <comment id>_attachment_<counter>_extracted.txt
               │   │   └── ...
               │   └── ... <other tools>
-              ├── chatgpt
+              ├── propublica_chatgpt_sentiment
               ├── ├──  sentiment_summary_extraction
               ├── ├──  topic_extractions                    
-              ├── careset
+              ├── careset_comment_identity
               │   ├── diff_graph
               │   │   └── ...  
 
