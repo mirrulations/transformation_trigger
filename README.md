@@ -2,6 +2,7 @@
 A repo for the mirrulations trigger to transform data
 
 s3-test1 bucket link: https://us-east-1.console.aws.amazon.com/s3/buckets/mirrulations-test1
+s3-revised bucket link: https://us-east-1.console.aws.amazon.com/s3/buckets/mirrulations-revised-form
 
 We initially developed our local infracture on local deployments of the AWS Server Application Model (SAM). We based the initial example of the of the provided 'Hello World' example from the SAM quick templates.
 
