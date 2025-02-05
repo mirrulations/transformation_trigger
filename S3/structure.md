@@ -26,30 +26,31 @@
 
 ## Overall S3 Structure Overview
 
-- Mirrulations
-    ├── Derived_data
-    │   └── agency
-    │       └── docketID
-    │           ├── MoravianResearch
-    │           │   └── projectName
-    │           │       ├── comment
-    │           │       ├── docket
-    │           │       └── document
-    │           ├── mirrulations
-    │           │   ├── ai_summary
-    │           │   │   ├── comment
-    │           │   │   ├── comment_attachments
-    │           │   │   └── document
-    │           │   ├── entities
-    │           │   │   ├── comment
-    │           │   │   ├── comment_attachment
-    │           │   │   └── document
-    │           │   └── extracted_txt
-    │           │       └── comment_attachment
-    │           │           └── commentID_attachment.txt
-    │           └── trotterf
-    │               └── projectName
-    │                   └── fileType
-    │                       └── fileID.txt
-    └── Raw_data
-        └── old_structure_minus_extracted_txt
+
+-       Mirrulations
+            ├── Derived_data
+            │   └── agency
+            │       └── docketID
+            │           ├── MoravianResearch
+            │           │   └── projectName
+            │           │       ├── comment
+            │           │       ├── docket
+            │           │       └── document
+            │           ├── mirrulations
+            │           │   ├── ai_summary
+            │           │   │   ├── comment
+            │           │   │   ├── comment_attachments
+            │           │   │   └── document
+            │           │   ├── entities
+            │           │   │   ├── comment
+            │           │   │   ├── comment_attachment
+            │           │   │   └── document
+            │           │   └── extracted_txt
+            │           │       └── comment_attachment
+            │           │           └── commentID_attachment.txt
+            │           └── trotterf
+            │               └── projectName
+            │                   └── fileType
+            │                       └── fileID.txt
+            └── Raw_data
+                └── old_structure_minus_extracted_txt
