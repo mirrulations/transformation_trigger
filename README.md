@@ -11,7 +11,7 @@ We initially developed our local infracture on local deployments of the AWS Serv
 - We utilized Docker for the containerized deployment of the infrastructure, download Docker Desktop [here](https://www.docker.com/products/docker-desktop/)
 
 - Clone this repository
-- `cd` into lambda-python3.13
+- `cd` into dev-env 
 - Run `sam build --use-container` to download the ECR image for python
 - Run `sam local invoke HelloWorldFunction --event events/event.json`
 - Run `sam local start-api` to initialize the container and visit the link that the program prints out (for example: localhost:3000/hello)
