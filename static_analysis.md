@@ -47,7 +47,6 @@ Create .flake8 file (We use the parameters below):
 [flake8]
 max-line-length = 90
 exclude = .git, __pycache__, .venv/*
-ignore = E203, W503
 ```
 
 Run flake8 again:
