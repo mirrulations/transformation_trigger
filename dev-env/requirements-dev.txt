@@ -1,0 +1,17 @@
+# requirements-dev.txt
+
+# Testing framework
+pytest
+
+# AWS mocking library
+moto
+
+# Mocking and patching utilities
+pytest-mock
+
+# Code linting/formatting tools (optional)
+flake8
+# black
+
+# SAM CLI for local testing (optional)
+# aws-sam-cli
