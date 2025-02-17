@@ -9,8 +9,9 @@ This guide demonstrates how to use **Moto** to mock an **S3 bucket** while using
 Ensure you have `moto` and `boto3` installed in your Python environment.
 
 ```sh
-pip install moto boto3 pytest
+pip install moto[all] boto3 pytest
 ```
+(You can also install specific services ie. pip install 'moto[s3,ec2]', etc.)
 
 ---
 
