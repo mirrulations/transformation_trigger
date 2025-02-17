@@ -1,33 +1,24 @@
+import boto3
 import json
+import os
 
 
-def lambda_handler(event, context):
-    """Sample pure Lambda function
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
-
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps(
-            {
-                "message": "hello world",
-            }
-        ),
-    }
+def orch_lambda(event, context):
+  try:
+      bucket_name = event['Records'][0]['s3']['bucket']['name']
+      object_key = event['Records'][0]['s3']['object']['key']
+  except KeyError as e:
+      raise ValueError(f"Missing key in event: {e}")
+    
+  # Construct the file path
+  file_path = f"s3://{bucket_name}/{object_key}"
+    
+  # Extract entities from file path
+  file_name = os.path.basename(object_key)
+  directory = os.path.dirname(object_key)
+    
+  # Print or use the extracted entities
+  print(f"File name: {file_name}")
+  print(f"Directory: {directory}")
+  
