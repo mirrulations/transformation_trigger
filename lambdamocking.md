@@ -1,4 +1,4 @@
-# Mocking AWS Lambda with Moto
+#  Mocking AWS Lambda with Moto
 
 This guide provides step-by-step instructions on how to mock AWS Lambda using the Moto library in Python. Moto allows you to simulate AWS services locally for testing purposes without interacting with real AWS resources.
 
