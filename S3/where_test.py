@@ -1,14 +1,20 @@
-# where_test.py
 """
 Unit tests for S3 Path Generator functions.
-Tests determine_raw_path and determine_derived_path.
+Tests extract_agency_docket_folder, determine_raw_path, upload_file, 
+process_file, and get_s3_client functions.
 """
 
 import unittest
 from unittest.mock import patch, MagicMock
 import json
 import os
-from where import extract_agency_docket, determine_raw_path, upload_file, process_file, get_s3_client  
+from where import (  # Change this to the correct script name
+    extract_agency_docket_folder,
+    determine_raw_path,
+    upload_file,
+    process_file,
+    get_s3_client
+)
 
 # Function to print test results
 def print_test_result(test_name, expected, actual):
@@ -18,27 +24,49 @@ def print_test_result(test_name, expected, actual):
     else:
         print(f"❌ {test_name} FAILED\nExpected: {expected}\nActual:   {actual}")
 
-class TestS3PathGenerator(unittest.TestCase):
+# Test
+class TestWhere(unittest.TestCase):
     
-    def test_extract_agency_docket(self):
+    """
+    Test extract_agency_docket_folder function.
+    """
+    def test_extract_agency_docket_folder(self):
+
+        # Test document, comment, docket file names
         expected = ("EPA", "EPA-2024-12345")
-        actual = extract_agency_docket("EPA-2024-12345-0001")
-        print_test_result("test_extract_agency_docket (Valid EPA)", expected, actual)
+        actual = extract_agency_docket_folder("EPA-2024-12345-0001.json", "document")
+        print_test_result("test_extract_agency_docket_folder (Valid EPA)", expected, actual)
         self.assertEqual(expected, actual)
 
         expected = ("DHS", "DHS-2023-67890")
-        actual = extract_agency_docket("DHS-2023-67890-0010")
-        print_test_result("test_extract_agency_docket (Valid DHS)", expected, actual)
+        actual = extract_agency_docket_folder("DHS-2023-67890-0010.json", "comment")
+        print_test_result("test_extract_agency_docket_folder (Valid DHS)", expected, actual)
         self.assertEqual(expected, actual)
 
+        expected = ("FWS", "FWS-2024-56789")
+        actual = extract_agency_docket_folder("FWS-2024-56789.json", "docket")
+        print_test_result("test_extract_agency_docket_folder (Valid FWS)", expected, actual)
+        self.assertEqual(expected, actual)
+
+        # Test invalid file names
         expected = ("UNKNOWN", "UNKNOWN")
-        actual = extract_agency_docket("invalid_file_name")
-        print_test_result("test_extract_agency_docket (Invalid File Name)", expected, actual)
+        actual = extract_agency_docket_folder("invalid_file_name.json", "document")
+        print_test_result("test_extract_agency_docket_folder (Invalid File Name)", expected, actual)
         self.assertEqual(expected, actual)
 
+        # Test `_content.htm` files
+        expected = ("FWS", "FWS-R4-ES-2024-0154")
+        actual = extract_agency_docket_folder("FWS-R4-ES-2024-0154-0001_content.htm", "document")
+        print_test_result("test_extract_agency_docket_folder (HTM Document)", expected, actual)
+        self.assertEqual(expected, actual)
+
+    """
+    Test determine_raw_path function.
+    """
     def test_determine_raw_path(self):
-        expected = "Raw_data/EPA/EPA-2024-12345/text-EPA-2024-12345/dockets/EPA-2024-12345-0001.json"
-        actual = determine_raw_path("EPA-2024-12345-0001.json", "docket", "json")
+        # Test docket, document, and comment file placement
+        expected = "Raw_data/EPA/EPA-2024-12345/text-EPA-2024-12345/dockets/EPA-2024-12345.json"
+        actual = determine_raw_path("EPA-2024-12345.json", "docket", "json")
         print_test_result("test_determine_raw_path (Docket JSON)", expected, actual)
         self.assertEqual(expected, actual)
 
@@ -47,6 +75,26 @@ class TestS3PathGenerator(unittest.TestCase):
         print_test_result("test_determine_raw_path (Document Attachment PDF)", expected, actual)
         self.assertEqual(expected, actual)
 
+        expected = "Raw_data/EPA/EPA-2024-12345/text-EPA-2024-12345/documents/EPA-2024-12345-0001.json"
+        actual = determine_raw_path("EPA-2024-12345-0001.json", "document", "json")
+        print_test_result("test_determine_raw_path (Document JSON)", expected, actual)
+        self.assertEqual(expected, actual)
+
+        # Test `_content.htm` file placement
+        expected = "Raw_data/FWS/FWS-R4-ES-2024-0154/text-FWS-R4-ES-2024-0154/documents/FWS-R4-ES-2024-0154-0001_content.htm"
+        actual = determine_raw_path("FWS-R4-ES-2024-0154-0001_content.htm", "document", "htm")
+        print_test_result("test_determine_raw_path (HTM Document)", expected, actual)
+        self.assertEqual(expected, actual)
+
+        # Test comment file placement
+        expected = "Raw_data/FWS/FWS-2024-56789/text-FWS-2024-56789/comments/FWS-2024-56789-0001.json"
+        actual = determine_raw_path("FWS-2024-56789-0001.json", "comment", "json")
+        print_test_result("test_determine_raw_path (Comment JSON)", expected, actual)
+        self.assertEqual(expected, actual)
+
+    """
+    Test upload_file function.
+    """
     @patch("where.boto3.client")  # Mock S3 client
     def test_upload_file(self, mock_boto_client):
         print("\nRunning test_upload_file...")
@@ -72,6 +120,9 @@ class TestS3PathGenerator(unittest.TestCase):
 
         os.remove(file_name)
 
+    """
+    Test process_file function.
+    """
     @patch("where.boto3.client")  # Mock S3 client
     def test_process_file(self, mock_boto_client):
         print("\nRunning test_process_file...")
@@ -96,6 +147,9 @@ class TestS3PathGenerator(unittest.TestCase):
 
         os.remove(file_name)
 
+    """
+    Test get_s3_client function.
+    """
     @patch("boto3.client")  # Mock S3 client creation
     def test_get_s3_client(self, mock_boto_client):
         print("\nRunning test_get_s3_client...")
@@ -105,6 +159,9 @@ class TestS3PathGenerator(unittest.TestCase):
         self.assertIsNotNone(client)
         mock_boto_client.assert_called_once_with("s3")
 
+"""
+Run the tests.
+"""
 if __name__ == "__main__":
     print("\n===== Running S3 Path Generator Tests (No AWS Credentials Needed) =====")
     unittest.main(argv=[''], exit=False)
