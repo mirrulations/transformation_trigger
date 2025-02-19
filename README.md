@@ -7,13 +7,19 @@ s3-revised bucket link: https://us-east-1.console.aws.amazon.com/s3/buckets/mirr
 
 We initially developed our local infracture on local deployments of the AWS Server Application Model (SAM). We based the initial example of the of the provided 'Hello World' example from the SAM quick templates.
 
+### Additional Documentation
+[Lambda Trigger Creation Guide](docs/lambda_trigger_documentation.md)\
+[Moto Lambda Mocking Guide](docs/lambdamocking.md)\
+[Moto S3 Mocking Guide](docs/s3mocking.md)\
+[Flake8 Installation & Setup Guide](docs/static_analysis.md)
+
 ## Get Started
 
 - To start, download the AWS SAM CLI [here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html#install-sam-cli-instructions).
 - We utilized Docker for the containerized deployment of the infrastructure, download Docker Desktop [here](https://www.docker.com/products/docker-desktop/)
 
 - Clone this repository
-- `cd` into dev-env 
+- `cd` into dev-env
 - Run `sam build --use-container` to download the ECR image for python
 - Run `sam local invoke HelloWorldFunction --event events/event.json`
 - Run `sam local start-api` to initialize the container and visit the link that the program prints out (for example: localhost:3000/hello)
