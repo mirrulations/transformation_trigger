@@ -119,7 +119,7 @@ def test_invoke_lambda(mock_lambda_setup, monkeypatch):
 To execute the test, run:
 
 ```sh
-pytest test_lambdamock.py
+pytest your_file_name
 ```
 
 ## Conclusion
