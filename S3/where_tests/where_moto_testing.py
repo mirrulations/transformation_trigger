@@ -7,7 +7,9 @@ import boto3
 import os
 import pytest
 import logging
+import sys
 from moto import mock_aws
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from S3.where import (
     extract_agency_docket_folder,
     determine_raw_path,

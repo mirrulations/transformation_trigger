@@ -8,6 +8,8 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from S3.where import (
     extract_agency_docket_folder,
     determine_raw_path,
@@ -95,7 +97,7 @@ class TestWhere(unittest.TestCase):
     """
     Test upload_file function.
     """
-    @patch("where.boto3.client")  # Mock S3 client
+    @patch("S3.where.boto3.client")  # Mock S3 client
     def test_upload_file(self, mock_boto_client):
         print("\nRunning test_upload_file...")
 
@@ -123,7 +125,7 @@ class TestWhere(unittest.TestCase):
     """
     Test process_file function.
     """
-    @patch("where.boto3.client")  # Mock S3 client
+    @patch("S3.where.boto3.client")  # Mock S3 client
     def test_process_file(self, mock_boto_client):
         print("\nRunning test_process_file...")
 
