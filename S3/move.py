@@ -19,7 +19,7 @@ transfer = S3Transfer(s3, TransferConfig(
 ))
 
 # Define your S3 bucket and folder names
-BUCKET_NAME = "s3testcs334s25"  # 🔹 Replace with your actual bucket name
+BUCKET_NAME = "capstone-bd"  # 🔹 Replace with your actual bucket name
 SOURCE_PREFIX = ""  # 🔹 Empty to scan everything in the bucket
 DEST_PREFIX = "Raw_data/"  # 🔹 Move everything into Raw_data/ while preserving structure
 
