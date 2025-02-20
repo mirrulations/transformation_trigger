@@ -21,7 +21,7 @@ pip install boto3 'moto[all]' pytest
 
 In this example, we will:
 
-1. Create a mock IAM execution role. (neccecary for Lambda mocking)
+1. Create a mock IAM execution role (necessary for Lambda mocking).
 2. Create a mock AWS Lambda function.
 3. Simulate invoking the Lambda function.
 
@@ -124,4 +124,4 @@ pytest your_file_name
 
 ## Conclusion
 
-You have now mocked a lambda function with moto!
+You have now mocked a Lambda function with Moto!
