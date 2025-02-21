@@ -20,12 +20,13 @@ def orch_lambda(event, context):
     
   # Print or use the extracted entities
   print(f"File name: {file_name}")
-  print(f"Directory: {directory}")
+#   print(f"Directory: {directory}")
   
   #split the file name to get extension
   file_name_split = file_name.split('.')
   file_name_without_extension = file_name_split[0]
   file_extension = file_name_split[1]
+  print("Invoking lambda function")
   if file_extension == 'txt':
     lambda_client = boto3.client('lambda')
     #invoke the lambda function that extracts entities from the txt file
@@ -38,8 +39,11 @@ def orch_lambda(event, context):
     return {
         'statusCode': 200,
         'body': json.dumps('Entities extracted and lambda invoked successfully')
-    }
-    
+        }
+  return  {
+        'statusCode': 200,
+        'body': json.dumps('File name passed and lambda invoked successfully')
+        } 
     
 
     
