@@ -5,8 +5,9 @@ sudo yum update -y
 sudo yum install -y git
 
 # Clone the repository
-REPO_URL="https://github.com/elon-shmusk/transformation_trigger.git"
-git clone $REPO_URL
+REPO_URL="https://github.com/mirrulations/transformation_trigger.git"
+BRANCH="Demo"
+git clone -b $BRANCH $REPO_URL
 
 # Navigate into the repository directory
 REPO_NAME="transformation_trigger"
