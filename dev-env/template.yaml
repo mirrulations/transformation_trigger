@@ -16,7 +16,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: lambda_functions/orchestrator/
-      Handler: app.handler
+      Handler: app.orch_lambda
       Runtime: python3.13
       Policies:
         - AWSLambdaBasicExecutionRole
