@@ -31,14 +31,11 @@ def orch_lambda(event, context):
     #invoke the lambda function that extracts entities from the txt file
     lambda_client.invoke(
         FunctionName='extract_entities',
-        InvocationType='Event',
+        InvocationType='RequestResponse',
         Payload=json.dumps(event)
     )
     #return response saying entities extracted and lambda invoked successfully
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Entities extracted and lambda invoked successfully')
-    }
+            # Parse the response
     
     
 
