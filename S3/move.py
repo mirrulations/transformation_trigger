@@ -24,7 +24,7 @@ SOURCE_PREFIX = ""  # 🔹 Empty to scan everything in the bucket
 DEST_PREFIX = "Raw_data/"  # 🔹 Move everything into Raw_data/ while preserving structure
 
 # Regex pattern to match docket IDs for the years 2024 and 2025
-DOCKET_PATTERN = re.compile(r'([A-Za-z0-9\-]+-2022-[A-Za-z0-9\-]+)')
+DOCKET_PATTERN = re.compile(r'([A-Za-z0-9\-]+-(2024|2025)-[A-Za-z0-9\-]+)')
 
 """
 Processes all files in the S3 bucket and moves them to the correct Raw_data folder.
