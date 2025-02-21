@@ -3,11 +3,7 @@ import boto3
 import pytest
 from moto import mock_aws
 from unittest.mock import patch
-from lambda_functions.orchestrator.app import orch_lambda  # Assuming this file is in the same folder as app.py
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+from .app import orch_lambda  # Assuming this file is in the same folder as app.py
 
 @pytest.fixture
 def s3_event():
