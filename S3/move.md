@@ -14,6 +14,29 @@ The `move.py` file handles the transfer of files to an S3 bucket after determini
   - Ensures that the destination folder exists in S3 before attempting an upload.
   - Logs all key actions and statuses during the file transfer process to aid with debugging and provide traceability.
 
+
+## moto_move_test Setup
+
+
+```bash
+# When running this file, you need to make sure to add S3. in front of the where on line 6 of the move.py file.
+# Create a virtual environment
+python -m venv .venv
+
+# Activate the virtual environment (Linux/macOS)
+source .venv/bin/activate
+
+# Activate the virtual environment (Windows)
+.venv\Scripts\activate
+
+# Install dependencies
+pip install boto3 moto pytest
+
+# Run python file
+python3 moto_move_test.py
+
+```
+
 ## Setup
 
 Before running `move.py`, set up a virtual environment and install the required dependencies:
@@ -30,3 +53,12 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install boto3
+
+# run file 
+
+python3 move.py
+
+```
+
+
+
