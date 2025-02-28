@@ -50,14 +50,88 @@ Resources:
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub "arn:aws:s3:::${ExistingBucketName}"
 
-  # S3 Bucket Notification Configuration
-  S3BucketNotification:
-    Type: AWS::S3::BucketNotification
+  # Custom resource Lambda to set up S3 notifications
+  S3NotificationSetupFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      Bucket: !Ref ExistingBucketName
-      LambdaConfigurations:
-        - Event: 's3:ObjectCreated:*'
-          Function: !GetAtt OrchestratorFunction.Arn
+      Handler: index.handler
+      Runtime: python3.13
+      InlineCode: |
+        import boto3
+        import cfnresponse
+        import json
+        import logging
+
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+
+        def handler(event, context):
+            logger.info('Received event: %s', json.dumps(event))
+            
+            # Extract parameters from the event
+            props = event['ResourceProperties']
+            bucket_name = props['BucketName']
+            lambda_arn = props['LambdaArn']
+            
+            response_data = {}
+            physical_id = f"{bucket_name}-notification"
+            
+            try:
+                if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
+                    logger.info(f"Configuring notification for bucket {bucket_name} to Lambda {lambda_arn}")
+                    
+                    # Create S3 client
+                    s3 = boto3.client('s3')
+                    
+                    # Configure bucket notification
+                    notification_config = {
+                        'LambdaFunctionConfigurations': [
+                            {
+                                'LambdaFunctionArn': lambda_arn,
+                                'Events': ['s3:ObjectCreated:*']
+                            }
+                        ]
+                    }
+                    
+                    # Apply the notification configuration
+                    s3.put_bucket_notification_configuration(
+                        Bucket=bucket_name,
+                        NotificationConfiguration=notification_config
+                    )
+                    
+                    response_data['Message'] = f"Successfully configured notification for {bucket_name}"
+                    cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
+                elif event['RequestType'] == 'Delete':
+                    # Remove the notification configuration
+                    logger.info(f"Removing notification for bucket {bucket_name}")
+                    
+                    s3 = boto3.client('s3')
+                    s3.put_bucket_notification_configuration(
+                        Bucket=bucket_name,
+                        NotificationConfiguration={}
+                    )
+                    
+                    response_data['Message'] = f"Successfully removed notification for {bucket_name}"
+                    cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
+            except Exception as e:
+                logger.error('Error: %s', str(e))
+                cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, physical_id)
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 's3:PutBucketNotification'
+                - 's3:GetBucketNotification'
+              Resource: !Sub "arn:aws:s3:::${ExistingBucketName}"
+
+  # Custom resource to trigger the notification configuration
+  S3NotificationConfig:
+    Type: Custom::S3BucketNotification
+    Properties:
+      ServiceToken: !GetAtt S3NotificationSetupFunction.Arn
+      BucketName: !Ref ExistingBucketName
+      LambdaArn: !GetAtt OrchestratorFunction.Arn
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocketIngestFunction:
