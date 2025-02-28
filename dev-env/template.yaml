@@ -33,12 +33,31 @@ Resources:
             Action:
               - lambda:InvokeFunction
             Resource: !GetAtt SQLDocketIngestFunction.Arn
-      Events:
-        S3PutEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref ExistingBucketName
-            Events: s3:ObjectCreated:*
+      # Events:
+      #   S3PutEvent:
+      #     Type: S3
+      #     Properties:
+      #       Bucket: !Ref ExistingBucketName
+      #       Events: s3:ObjectCreated:*
+  
+  # Permission to allow S3 to invoke the Lambda
+  OrchestratorFunctionS3Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref OrchestratorFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub "arn:aws:s3:::${ExistingBucketName}"
+
+  # S3 Bucket Notification Configuration
+  S3BucketNotification:
+    Type: AWS::S3::BucketNotification
+    Properties:
+      Bucket: !Ref ExistingBucketName
+      LambdaConfigurations:
+        - Event: 's3:ObjectCreated:*'
+          Function: !GetAtt OrchestratorFunction.Arn
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocketIngestFunction:
@@ -55,7 +74,6 @@ Resources:
           - subnet-0e157bfea98242a74
       Layers:
         - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
-      Timeout: 10
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSDataFullAccess  # Allows writing to Aurora
@@ -70,7 +88,7 @@ Resources:
           # Remove or replace these with your DB_SECRET_NAME environment variable
           # AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
           # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
-          # DB_SECRET_NAME: "your-database-secret-name"  # Name of your secret in Secrets Manager
+          DB_SECRET_NAME: "mirrulationsdb/postgres/master-uA4mKl"  # Name of your secret in Secrets Manager
 
 Outputs:
 
