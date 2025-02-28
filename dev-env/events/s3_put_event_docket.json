@@ -27,7 +27,7 @@
           "arn": "arn:aws:s3:::local-testing-bucket"
         },
         "object": {
-          "key": "test-file.json",
+          "key": "Raw_data/CMS/CMS-2020-0098/text-CMS-2020-0098/docket/CMS-2020-0098.json",
           "size": 1024,
           "eTag": "0123456789abcdef0123456789abcdef",
           "sequencer": "0A1B2C3D4E5F678901"
