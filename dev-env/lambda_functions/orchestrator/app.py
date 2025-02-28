@@ -26,7 +26,7 @@ def orch_lambda(event, context):
   file_name_split = file_name.split('.')
   file_name_without_extension = file_name_split[0]
   file_extension = file_name_split[1]
-  if file_extension == 'json' and 'comment' in file_name_without_extension:
+  if file_extension == 'json' and 'docket' in file_name_without_extension:
     lambda_client = boto3.client('lambda')
     #invoke the lambda function that extracts entities from the txt file
     lambda_client.invoke(
