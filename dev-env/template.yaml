@@ -4,6 +4,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   AWS SAM Template for Multi-Lambda Microservices
 
+Parameters:
+  ExistingBucketName:
+    Type: String
+    Description: Name of the existing S3 bucket that will trigger the Orchestrator Lambda
+    Default: "etllambdatest"
+
 Globals:
   Function:
     Timeout: 10
@@ -21,41 +27,41 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3ReadPolicy:  # Allows this Lambda to read from S3
-            BucketName: !Ref ExistingDataBucket
+            BucketName: !Ref ExistingBucketName
+        - Statement:  # Add this to allow invoking other Lambdas
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: !GetAtt SQLDocketIngestFunction.Arn
       Events:
         S3PutEvent:
           Type: S3
           Properties:
-            Bucket: !Ref ExistingDataBucket
+            Bucket: !Ref ExistingBucketName
             Events: s3:ObjectCreated:*
 
-  # # SQL Ingest Lambda (Triggered by Orchestrator)
-  # SQLIngestFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: lambda_functions/sql_ingest/
-  #     Handler: app.handler
-  #     Runtime: python3.13
-  #     Policies:
-  #       - AWSLambdaBasicExecutionRole
-  #       - AmazonRDSDataFullAccess  # Allows writing to Aurora
-  #     Environment:
-  #       Variables:
-  #         AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
-  #         AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
-  #     Events:
-  #       OrchestratorTrigger:
-  #         Type: EventBridgeRule
-  #         Properties:
-  #           Pattern:
-  #             source:
-  #               - "custom.orchestrator"
-
-  # Use Existing S3 Bucket (Instead of Creating One)
-  ExistingDataBucket:
-    Type: AWS::S3::Bucket
+  # SQL Docket Ingest Lambda (Triggered by Orchestrator)
+  SQLDocketIngestFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      BucketName: "your-existing-bucket-name" 
+      CodeUri: lambda_functions/sql_docket_ingest/
+      Handler: app.handler
+      Runtime: python3.13
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonRDSDataFullAccess  # Allows writing to Aurora
+        - Version: '2012-10-17'  # Add Secrets Manager permissions
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+      Environment:
+        Variables:
+          # Remove or replace these with your DB_SECRET_NAME environment variable
+          # AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
+          # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
+          # DB_SECRET_NAME: "your-database-secret-name"  # Name of your secret in Secrets Manager
 
 Outputs:
 
@@ -63,6 +69,6 @@ Outputs:
     Description: "Orchestrator Lambda Function ARN"
     Value: !GetAtt OrchestratorFunction.Arn
 
-  # SQLIngestFunctionArn:
-  #   Description: "Data Ingestor Lambda Function ARN"
-  #   Value: !GetAtt DataIngestorFunction.Arn
+  SQLDocketIngestFunctionArn:
+      Description: "SQL Docket Ingest Lambda Function ARN"
+      Value: !GetAtt SQLDocketIngestFunction.Arn
