@@ -1,0 +1,51 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest flake8 coverage
+        # If you have a requirements.txt file:
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install dev dependencies if you have them:
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        
+    # - name: Install AWS SAM CLI
+    #   run: |
+    #     pip install aws-sam-cli
+
+    - name: Lint with flake8  
+      run: |    
+        flake8 ./dev-env/lambda_functions/ ./dev-env/tests/  
+      continue-on-error: true  
+
+    - name: Run pytest with coverage
+      run: |  
+        coverage run -m pytest  -v -s  ./dev-env/tests/
+
+    - name: Generate Coverage Report  
+      run: |  
+        coverage report -m
+        
+    # - name: Verify SAM template
+    #   run: |
+    #     cd dev-env
+    #     sam validate
