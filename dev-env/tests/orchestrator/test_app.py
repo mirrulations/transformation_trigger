@@ -1,97 +1,178 @@
-import sys
-import os
 import json
-import boto3
 import pytest
+import boto3
 from moto import mock_aws
 from unittest.mock import patch
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-from lambda_functions.orchestrator.app import orch_lambda
 
+# Import the functions to be tested - update import path as needed
+from app import extractS3, orch_lambda
 
+# Fixture for mocking AWS credentials
 @pytest.fixture
-def s3_event():
-    """Mock S3 event for a .json file upload"""
-    return {
-        "Records": [
+def aws_credentials():
+    """Mocked AWS Credentials for boto3."""
+    with patch.dict('os.environ', {
+        'AWS_ACCESS_KEY_ID': 'testing',
+        'AWS_SECRET_ACCESS_KEY': 'testing',
+        'AWS_SECURITY_TOKEN': 'testing',
+        'AWS_SESSION_TOKEN': 'testing',
+        'AWS_DEFAULT_REGION': 'us-east-1'
+    }):
+        yield
+
+# Test cases for extractS3 function
+def test_extractS3_valid_event():
+    """Test extractS3 with a valid S3 event"""
+    event = {
+        'Records': [
             {
-                "s3": {
-                    "bucket": {"name": "my-test-bucket"},
-                    "object": {"key": "documents/test_file.json"}
+                's3': {
+                    'bucket': {
+                        'name': 'test-bucket'
+                    },
+                    'object': {
+                        'key': 'path/to/docket_file.json'
+                    }
                 }
             }
         ]
     }
+    
+    result = extractS3(event)
+    assert result == 's3://test-bucket/path/to/docket_file.json'
 
-@pytest.fixture
-def s3_event_non_json():
-    """Mock S3 event for a non-json file upload"""
-    return {
-        "Records": [
+def test_extractS3_empty_event():
+    """Test extractS3 with an empty event"""
+    with pytest.raises(ValueError) as e:
+        extractS3(None)
+    assert "Event is empty" in str(e.value)
+
+def test_extractS3_invalid_event():
+    """Test extractS3 with an event missing required fields"""
+    event = {'Records': [{'wrong_format': True}]}
+    
+    with pytest.raises(ValueError) as e:
+        extractS3(event)
+    assert "Cannot extract S3 information from event" in str(e.value)
+
+# Test cases for orch_lambda function
+@mock_aws
+def test_orch_lambda_docket_json(aws_credentials):
+    """Test orch_lambda with a docket JSON file"""
+    # Create test S3 bucket and object
+    s3 = boto3.client('s3', region_name='us-east-1')
+    s3.create_bucket(Bucket='test-bucket')
+    s3.put_object(
+        Bucket='test-bucket',
+        Key='path/to/docket_file.json',
+        Body='{"test": "data"}'
+    )
+    
+    # Create a sample S3 event
+    event = {
+        'Records': [
             {
-                "s3": {
-                    "bucket": {"name": "my-test-bucket"},
-                    "object": {"key": "documents/image.png"}
+                's3': {
+                    'bucket': {
+                        'name': 'test-bucket'
+                    },
+                    'object': {
+                        'key': 'path/to/docket_file.json'
+                    }
                 }
             }
         ]
     }
-
-@pytest.fixture
-def s3_event_missing_key():
-    """Mock S3 event with missing required keys"""
-    return {"Records": [{}]}  # Missing required 's3' structure
+    
+    # Mock the lambda client invoke method
+    with patch('boto3.client') as mock_boto:
+        mock_lambda = mock_boto.return_value
+        mock_lambda.invoke.return_value = {'StatusCode': 200}
+        
+        # Call the function
+        result = orch_lambda(event, {})
+        
+        # Verify lambda was called correctly
+        mock_boto.assert_called_once_with('lambda')
+        mock_lambda.invoke.assert_called_once_with(
+            FunctionName='SQLDocketIngestFunction',
+            InvocationType='RequestResponse',
+            Payload=json.dumps({"file_path": 's3://test-bucket/path/to/docket_file.json'}).encode("utf-8")
+        )
+        
+    # Verify the result
+    assert result['statusCode'] == 200
+    assert 'Lambda function invoked successfully' in result['body']
 
 @mock_aws
-def test_lambda_invocation(s3_event):
-    """Test that the orchestrator correctly invokes the extract_entities Lambda for .json files"""
+def test_orch_lambda_non_docket_file(aws_credentials):
+    """Test orch_lambda with a non-docket file"""
+    # Create test S3 bucket and object
+    s3 = boto3.client('s3', region_name='us-east-1')
+    s3.create_bucket(Bucket='test-bucket')
+    s3.put_object(
+        Bucket='test-bucket',
+        Key='path/to/regular_file.json',
+        Body='{"test": "data"}'
+    )
     
-    # Patch boto3 lambda client to avoid role validation issue
-    with patch("boto3.client") as mock_boto_client:
-        mock_lambda = mock_boto_client.return_value
-
-        # Mock the response for create_function (bypassing IAM validation)
-        mock_lambda.create_function.return_value = {
-            "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:extract_entities"
-        }
-
-        # Mock invocation response
-        mock_lambda.invoke.return_value = {"StatusCode": 202}
-
-        # Invoke the orchestrator lambda
-        response = orch_lambda(s3_event, None)
-
-        # Assertions
-        assert response["statusCode"] == 200
-        assert "Entities extracted and lambda invoked successfully" in response["body"]
-
-        # Ensure Lambda function was invoked
-        mock_lambda.invoke.assert_called_once()
-
-@mock_aws
-def test_lambda_not_invoked_for_non_json(s3_event_non_json):
-    """Test that the orchestrator does NOT invoke another Lambda for non-json files"""
+    # Create a sample S3 event
+    event = {
+        'Records': [
+            {
+                's3': {
+                    'bucket': {
+                        'name': 'test-bucket'
+                    },
+                    'object': {
+                        'key': 'path/to/regular_file.json'
+                    }
+                }
+            }
+        ]
+    }
     
-    with patch("boto3.client") as mock_boto_client:
-        mock_lambda = mock_boto_client.return_value
+    # Call the function
+    result = orch_lambda(event, {})
+    
+    # Verify the result
+    assert result['statusCode'] == 200
+    assert 'File not processed - not a docket JSON file' in result['body']
 
-        # Mock create_function to avoid IAM validation
-        mock_lambda.create_function.return_value = {
-            "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:extract_entities"
-        }
+def test_orch_lambda_invalid_event():
+    """Test orch_lambda with an invalid event"""
+    # Call the function with an empty event
+    result = orch_lambda({}, {})
+    
+    # Verify the result
+    assert result['statusCode'] == 400
+    assert 'Error processing request' in result['body']
 
-        # Invoke the orchestrator lambda
-        response = orch_lambda(s3_event_non_json, None)
-
-        # Assertions - Since nothing is returned for non-json files, response should be None
-        assert response is None
-
-        # Ensure Lambda function was NOT invoked
-        mock_lambda.invoke.assert_not_called()
-
-def test_missing_keys(s3_event_missing_key):
-    """Test that an error is raised when event is missing required keys"""
-    with pytest.raises(ValueError, match="Missing key in event"):
-        orch_lambda(s3_event_missing_key, None)
-
-
+def test_orch_lambda_exception():
+    """Test orch_lambda with an exception being raised"""
+    # Create a sample S3 event
+    event = {
+        'Records': [
+            {
+                's3': {
+                    'bucket': {
+                        'name': 'test-bucket'
+                    },
+                    'object': {
+                        'key': 'path/to/docket_file.json'
+                    }
+                }
+            }
+        ]
+    }
+    
+    # Mock extractS3 to raise an exception
+    with patch('app.extractS3') as mock_extract:
+        mock_extract.side_effect = Exception("Unexpected error")
+        
+        # Call the function
+        result = orch_lambda(event, {})
+    
+    # Verify the result
+    assert result['statusCode'] == 500
+    assert 'Unexpected error' in result['body']
