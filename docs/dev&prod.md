@@ -1,5 +1,5 @@
 lambda functions: 
-the development environment can be run through sam and unit tests.
+the development environment can be run through sam and unit tests. See running_locally.
 
 
 
