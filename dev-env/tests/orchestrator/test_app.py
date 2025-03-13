@@ -5,7 +5,7 @@ from moto import mock_aws
 from unittest.mock import patch
 
 # Import the functions to be tested - update import path as needed
-from app import extractS3, orch_lambda
+from lambda_functions.orchestrator.app import extractS3, orch_lambda
 
 # Fixture for mocking AWS credentials
 @pytest.fixture
@@ -167,7 +167,7 @@ def test_orch_lambda_exception():
     }
     
     # Mock extractS3 to raise an exception
-    with patch('app.extractS3') as mock_extract:
+    with patch('lambda_functions.orchestrator.app.extractS3') as mock_extract:
         mock_extract.side_effect = Exception("Unexpected error")
         
         # Call the function
