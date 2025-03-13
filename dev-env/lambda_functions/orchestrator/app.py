@@ -5,7 +5,7 @@ import os
 def extractS3(event):
     if not event:
         raise ValueError("Event is empty")
- 
+
     try:
         bucket_name = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
@@ -27,8 +27,8 @@ lambda_client = get_lambda_client()
 
 def orch_lambda(event, context):
     try:
-        file_path = extractS3(event) 
-        
+        file_path = extractS3(event)
+
         if '.json' in file_path and 'docket' in file_path:
             response = lambda_client.invoke(
                 FunctionName='SQLDocketIngestFunction',
@@ -44,7 +44,7 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('File not processed - not a docket JSON file')
             }
-            
+
     except ValueError as e:
         return {
             'statusCode': 400,
@@ -55,3 +55,4 @@ def orch_lambda(event, context):
             'statusCode': 500,
             'body': json.dumps(f'Unexpected error: {str(e)}')
         }
+    
