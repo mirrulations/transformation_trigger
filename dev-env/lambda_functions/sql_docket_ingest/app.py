@@ -3,7 +3,7 @@ import json
 import psycopg
 import boto3
 # from botocore.exceptions import ClientError
-from common.utils.ingest_docket import insert_docket
+from common.ingest import ingest_docket
 
 # def get_secret(secret_name):
 #     """
@@ -49,7 +49,7 @@ def handler(event, context):
         event (dict): Contains the payload from the invoking Lambda
         context: Lambda context object
     """
-    print("Received event: %s", json.dumps(event))
+    print(f"Received event: {json.dumps(event)}")
 
 
     
@@ -67,7 +67,7 @@ def handler(event, context):
             raise ValueError("File content is empty")
         
         if "docket" in s3dict['file_key']:
-            insert_docket(file_content)
+            ingest_docket(file_content)
         
         return {
             'statusCode': 200,
@@ -80,4 +80,3 @@ def handler(event, context):
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})
         }
-    return 0
