@@ -37,5 +37,12 @@ def orch_lambda(event, context):
                 InvocationType='RequestResponse',
                 Payload=file_path
         )
+        elif '.json' in file_path and 'comment' in file_path:
+            lambda_client.boto3.client('lambda')
+            lambda_client.invoke(
+                FunctionName='OSCommentIngestFunction',
+                InvocationType='RequestResponse',
+                Payload=file_path
+            )
     except:
         raise ValueError("Error invoking Lambda function")
