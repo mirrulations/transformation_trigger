@@ -23,9 +23,10 @@ def get_lambda_client():
     else:
         return boto3.client("lambda")
 
-lambda_client = get_lambda_client()
 
 def orch_lambda(event, context):
+    lambda_client = get_lambda_client()
+
     try:
         file_path = extractS3(event)
 
