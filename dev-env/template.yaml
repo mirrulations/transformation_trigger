@@ -162,10 +162,10 @@ Resources:
       Layers:
         - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
         - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
+      Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonRDSDataFullAccess  # Allows writing to Aurora
-        - 334s25_lambda_execution_opensearch
         - Version: '2012-10-17'  # Add Secrets Manager permissions
           Statement:
             - Effect: Allow
