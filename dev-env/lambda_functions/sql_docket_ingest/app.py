@@ -3,7 +3,7 @@ import json
 import psycopg
 import boto3
 # from botocore.exceptions import ClientError
-from common.ETL.utils.ingest_docket import ingest_docket
+from common.ETL.utils.ingest_docket import insert_docket
 
 # def get_secret(secret_name):
 #     """
@@ -67,7 +67,7 @@ def handler(event, context):
             raise ValueError("File content is empty")
         
         if "docket" in s3dict['file_key']:
-            ingest_docket(file_content)
+            insert_docket(file_content)
         
         return {
             'statusCode': 200,
