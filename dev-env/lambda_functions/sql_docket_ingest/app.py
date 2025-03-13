@@ -35,7 +35,7 @@ def get_secret(secret_name):
         else:
             logger.error("Secret not found in expected format")
             raise Exception("Secret not found in expected format")
-   
+
     except ClientError as e:
         logger.error(f"Error retrieving secret: {str(e)}")
         raise e
