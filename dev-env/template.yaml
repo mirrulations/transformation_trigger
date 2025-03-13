@@ -35,7 +35,8 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3ReadPolicy:  # Allows this Lambda to read from S3
-            BucketName: !Ref OrchestratorBucket #ExistingBucketName
+            # BucketName: !Ref OrchestratorBucket #ExistingBucketName
+            BucketName: !Sub "orchestrator-bucket-${AWS::AccountId}-${AWS::Region}"
         - Statement:  # Add this to allow invoking other Lambdas
           - Effect: Allow
             Action:
