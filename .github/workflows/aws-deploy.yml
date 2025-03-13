@@ -5,6 +5,10 @@ on:
         branches:
             - main
 
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
