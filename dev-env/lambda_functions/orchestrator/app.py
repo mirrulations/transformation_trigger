@@ -5,18 +5,17 @@ import os
 def extractS3(event):
     if not event:
         raise ValueError("Event is empty")
-    
+ 
     try:
         bucket_name = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
     except (KeyError, IndexError) as e:
         raise ValueError(f"Cannot extract S3 information from event: {e}")
-    
+
     # Construct the file path
     file_path = f"s3://{bucket_name}/{object_key}"
-    
     return file_path
-  
+
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
     if os.getenv("AWS_SAM_LOCAL", "false").lower() == "true":
