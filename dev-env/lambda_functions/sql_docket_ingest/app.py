@@ -3,7 +3,7 @@ import json
 import psycopg
 import boto3
 # from botocore.exceptions import ClientError
-from common.ETL.utils.ingest_docket import insert_docket
+from common.utils.ingest_docket import insert_docket
 
 # def get_secret(secret_name):
 #     """
