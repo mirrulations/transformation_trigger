@@ -16,7 +16,6 @@ Globals:
     MemorySize: 256
 
 Resources:
-
   # New S3 bucket that will trigger the Orchestrator Lambda
   OrchestratorBucket:
     Type: AWS::S3::Bucket
@@ -24,6 +23,14 @@ Resources:
       # This example uses a generated bucket name. Adjust as needed.
       BucketName: !Sub "orchestrator-bucket-${AWS::AccountId}-${AWS::Region}"
 
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: common-layer
+      Description: "Common code shared among multiple Lambda functions"
+      ContentUri: common_layer
+      CompatibleRuntimes:
+        - python3.13
 
   # Orchestrator Lambda (Triggered by S3 PutObject)
   OrchestratorFunction:
@@ -162,6 +169,7 @@ Resources:
       Layers:
         - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
         - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
+        - !Ref CommonLayer
       Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
         - AWSLambdaBasicExecutionRole

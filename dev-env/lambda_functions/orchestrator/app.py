@@ -33,8 +33,10 @@ def orch_lambda(event, context):
 
     try:
         s3dict = extractS3(event)
+        print(s3dict)
 
         if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
+            print("docket json found!")
             response = lambda_client.invoke(
                 FunctionName='SQLDocketIngestFunction',
                 InvocationType='RequestResponse',
@@ -45,6 +47,7 @@ def orch_lambda(event, context):
                 'body': json.dumps('Lambda function invoked successfully')
             }
         else:
+            print("File not processed")
             return {
                 'statusCode': 200,
                 'body': json.dumps('File not processed - not a docket JSON file')
