@@ -40,7 +40,7 @@ def orch_lambda(event, context):
             response = lambda_client.invoke(
                 FunctionName='SQLDocketIngestFunction',
                 InvocationType='RequestResponse',
-                Payload=json.dumps({"s3dict": s3dict}).encode("utf-8")
+                Payload=json.dumps(s3dict)
             )
             return {
                 'statusCode': 200,
