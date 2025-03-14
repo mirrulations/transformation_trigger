@@ -31,6 +31,12 @@ def get_lambda_client():
 def orch_lambda(event, context):
     lambda_client = get_lambda_client()
 
+    # Retrieve the SQL ingest function's name (or ARN) from the environment
+    sql_docket_function = os.environ.get("SQL_DOCKET_INGEST_FUNCTION")
+    if not sql_docket_function:
+        raise Exception("SQL ingest function name is not set in the environment variables")
+    
+
     try:
         s3dict = extractS3(event)
         print(s3dict)
@@ -38,7 +44,7 @@ def orch_lambda(event, context):
         if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
             print("docket json found!")
             response = lambda_client.invoke(
-                FunctionName='SQLDocketIngestFunction',
+                FunctionName=sql_docket_function,
                 InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
