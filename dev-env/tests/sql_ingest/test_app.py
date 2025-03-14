@@ -12,7 +12,6 @@ sys.modules['common.ingest'].ingest_docket = MagicMock()
 sys.modules['psycopg'] = MagicMock()
 
 # import the handler
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../lambda_functions/sql_docket_ingest'))
 from lambda_functions.sql_docket_ingest.app import handler
 
 @pytest.fixture
