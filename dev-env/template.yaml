@@ -19,9 +19,11 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: "VPC ID where Lambda functions are deployed"
+    Default: "vpc-00f6bc3c21d7d91d5"
   PrivateRouteTableIds:
     Type: CommaDelimitedList
     Description: "Route table IDs for the private subnets"
+    Default: "rtb-0c89919b1ec9ba6e1"
   
 
 Resources:
