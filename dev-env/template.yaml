@@ -55,6 +55,9 @@ Resources:
           Properties:
             Bucket: !Ref OrchestratorBucket
             Events: s3:ObjectCreated:*
+      Environment:
+        Variables:
+          SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
   
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
