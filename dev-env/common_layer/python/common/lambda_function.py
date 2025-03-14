@@ -1,4 +1,4 @@
-from ingest import ingest_comment, ingest_docket, ingest_document
+from .ingest import ingest_comment, ingest_docket, ingest_document
 
 def lambda_handler(event, context):
     docket = """
