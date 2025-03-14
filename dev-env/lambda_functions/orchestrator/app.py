@@ -12,9 +12,13 @@ def extractS3(event):
     except (KeyError, IndexError) as e:
         raise ValueError(f"Cannot extract S3 information from event: {e}")
 
-    # Construct the file path
-    file_path = f"s3://{bucket_name}/{object_key}"
-    return file_path
+    # Construct the s3 dictionary
+    s3dict = {
+        "bucket": bucket_name,
+        "file_key": object_key
+    }
+    
+    return s3dict
 
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
@@ -28,13 +32,13 @@ def orch_lambda(event, context):
     lambda_client = get_lambda_client()
 
     try:
-        file_path = extractS3(event)
+        s3dict = extractS3(event)
 
-        if '.json' in file_path and 'docket' in file_path:
+        if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
             response = lambda_client.invoke(
                 FunctionName='SQLDocketIngestFunction',
                 InvocationType='RequestResponse',
-                Payload=json.dumps({"file_path": file_path}).encode("utf-8")
+                Payload=json.dumps({"s3dict": s3dict}).encode("utf-8")
             )
             return {
                 'statusCode': 200,
