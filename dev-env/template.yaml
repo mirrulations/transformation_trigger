@@ -15,26 +15,26 @@ Globals:
     Timeout: 60
     MemorySize: 256
 
-Parameters:
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: "VPC ID where Lambda functions are deployed"
-    Default: "vpc-00f6bc3c21d7d91d5"
-  PrivateRouteTableIds:
-    Type: CommaDelimitedList
-    Description: "Route table IDs for the private subnets"
-    Default: "rtb-0c89919b1ec9ba6e1"
+# Parameters:
+#   VpcId:
+#     Type: AWS::EC2::VPC::Id
+#     Description: "VPC ID where Lambda functions are deployed"
+#     Default: "vpc-00f6bc3c21d7d91d5"
+#   PrivateRouteTableIds:
+#     Type: CommaDelimitedList
+#     Description: "Route table IDs for the private subnets"
+#     Default: "rtb-0c89919b1ec9ba6e1"
   
 
 Resources:
-  # VPC Endpoint for S3
-  S3VPCEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
-      VpcId: !Ref VpcId
-      RouteTableIds: !Ref PrivateRouteTableIds
-      VpcEndpointType: Gateway
+  # # VPC Endpoint for S3
+  # S3VPCEndpoint:
+  #   Type: AWS::EC2::VPCEndpoint
+  #   Properties:
+  #     ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+  #     VpcId: !Ref VpcId
+  #     RouteTableIds: !Ref PrivateRouteTableIds
+  #     VpcEndpointType: Gateway
   
   # New S3 bucket that will trigger the Orchestrator Lambda
   OrchestratorBucket:
@@ -195,6 +195,7 @@ Resources:
         - !Ref CommonLayer
       Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
+        - AmazonS3ReadOnlyAccess  # Allows reading from S3
         - AWSLambdaBasicExecutionRole
         - AmazonRDSDataFullAccess  # Allows writing to Aurora
         - Version: '2012-10-17'  # Add Secrets Manager permissions
