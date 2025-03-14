@@ -66,8 +66,11 @@ def handler(event, context):
         if not file_content:
             raise ValueError("File content is empty")
         
-        if "docket" in s3dict['file_key']:
+        print('file key' + s3dict['file_key'])
+        if 'docket' in s3dict['file_key']:
+            print("ingesting")
             ingest_docket(file_content)
+            print("ingest complete!")
         
         return {
             'statusCode': 200,
