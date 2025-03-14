@@ -34,7 +34,7 @@ def orch_lambda(event, context):
     try:
         s3dict = extractS3(event)
 
-        if '.json' and 'docket' in s3dict['file_key']:
+        if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
             response = lambda_client.invoke(
                 FunctionName='SQLDocketIngestFunction',
                 InvocationType='RequestResponse',
