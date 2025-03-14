@@ -15,7 +15,25 @@ Globals:
     Timeout: 60
     MemorySize: 256
 
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: "VPC ID where Lambda functions are deployed"
+  PrivateRouteTableIds:
+    Type: CommaDelimitedList
+    Description: "Route table IDs for the private subnets"
+  
+
 Resources:
+  # VPC Endpoint for S3
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref VpcId
+      RouteTableIds: !Ref PrivateRouteTableIds
+      VpcEndpointType: Gateway
+  
   # New S3 bucket that will trigger the Orchestrator Lambda
   OrchestratorBucket:
     Type: AWS::S3::Bucket
