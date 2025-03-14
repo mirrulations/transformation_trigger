@@ -54,6 +54,7 @@ jobs:
         run: |
           cd dev-env  # Change to the sam directory
           sam build
+          sam validate --template-file template.yaml
           sam deploy --no-fail-on-empty-changeset
 
       - run: echo "This job's status is ${{ job.status }}."
