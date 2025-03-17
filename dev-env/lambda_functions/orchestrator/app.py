@@ -30,7 +30,7 @@ def orch_lambda(event, context):
         elif '.json' in file_path and 'comment' in file_path:
             lambda_client = boto3.client('lambda')
             response = lambda_client.invoke(
-                FunctionName='SQLCommentIngestFunction',
+                FunctionName='OSCommentIngestFunction',
                 InvocationType='RequestResponse',
                 Payload=json.dumps({"file_path": file_path}).encode("utf-8")
             )
