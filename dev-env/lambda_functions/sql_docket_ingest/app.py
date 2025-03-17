@@ -1,44 +1,44 @@
-import psycopg
 import json
-import logger
+# import os
+import psycopg
 import boto3
-import os
-from botocore.exceptions import ClientError
+# from botocore.exceptions import ClientError
+from common.ingest import ingest_docket
 
-def get_secret(secret_name):
-    """
-    Retrieve a secret from AWS Secrets Manager
+# def get_secret(secret_name):
+#     """
+#     Retrieve a secret from AWS Secrets Manager
 
-    Args:
-        secret_name: Name of the secret to retrieve
+#     Args:
+#         secret_name: Name of the secret to retrieve
  
-    Returns:
-        dict: The secret key/value pairs
-    """
-    region_name = os.environ.get('AWS_REGION', 'us-east-1')
+#     Returns:
+#         dict: The secret key/value pairs
+#     """
+#     region_name = os.environ.get('AWS_REGION', 'us-east-1')
 
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
+#     # Create a Secrets Manager client
+#     session = boto3.session.Session()
+#     client = session.client(
+#         service_name='secretsmanager',
+#         region_name=region_name
+#     )
 
-    try:
-        # Get the secret value
-        response = client.get_secret_value(SecretId=secret_name)
+#     try:
+#         # Get the secret value
+#         response = client.get_secret_value(SecretId=secret_name)
 
-        # Decode and parse the secret string JSON
-        if 'SecretString' in response:
-            secret = json.loads(response['SecretString'])
-            return secret
-        else:
-            logger.error("Secret not found in expected format")
-            raise Exception("Secret not found in expected format")
-   
-    except ClientError as e:
-        logger.error(f"Error retrieving secret: {str(e)}")
-        raise e
+#         # Decode and parse the secret string JSON
+#         if 'SecretString' in response:
+#             secret = json.loads(response['SecretString'])
+#             return secret
+#         else:
+#             logger.error("Secret not found in expected format")
+#             raise Exception("Secret not found in expected format")
+
+#     except ClientError as e:
+#         logger.error(f"Error retrieving secret: {str(e)}")
+#         raise e
 
 def handler(event, context):
     """
@@ -49,42 +49,37 @@ def handler(event, context):
         event (dict): Contains the payload from the invoking Lambda
         context: Lambda context object
     """
-    logger.info("Received event: %s", json.dumps(event))
+    print(f"Received event: {json.dumps(event)}")
+
+
     
-    # try:
-    #     # Extract data from the event
-    #     # If the event comes from a direct Lambda invocation, it will be the payload you provided
-    #     # If it comes from an S3 event or other service, structure will be different
-    #     if 'Records' in event:
-    #         # Handle S3 or SQS type events
-    #         logger.info("Processing event with Records")
-    #         # Example: data = process_records(event['Records'])
-    #         data = event['Records']
-    #         print(data)
-    #     else:
-    #         # Handle direct Lambda invocations
-    #         logger.info("Processing direct Lambda invocation")
-    #         data = event
+    try:
+        # Handle direct Lambda invocations
+        s3dict = event
+        print("Data: ", s3dict)
         
-        # Connect to the PostgreSQL database
-    #     # Use environment variables for connection details
-    #     conn = get_db_connection()
+        # Get file contents from aws s3 (s3dict is the dictionary containing the bucket and file_key)
+        s3 = boto3.client('s3')
+        file_obj = s3.get_object(Bucket=s3dict['bucket'], Key=s3dict['file_key'])
+        file_content = file_obj['Body'].read().decode('utf-8')
+
+        if not file_content:
+            raise ValueError("File content is empty")
         
-    #     # Process data and insert into database
-    #     result = insert_data_to_db(conn, data)
+        print('file key' + s3dict['file_key'])
+        if 'docket' in s3dict['file_key']:
+            print("ingesting")
+            ingest_docket(file_content)
+            print("ingest complete!")
         
-    #     # Close the connection
-    #     conn.close()
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': 'Data processed successfully'})
+        }
         
-    #     return {
-    #         'statusCode': 200,
-    #         'body': json.dumps({'message': 'Data processed successfully', 'result': result})
-    #     }
-        
-    # except Exception as e:
-    #     logger.error(f"Error processing event: {str(e)}")
-    #     return {
-    #         'statusCode': 500,
-    #         'body': json.dumps({'error': str(e)})
-    #     }
-    return 0
+    except Exception as e:
+        # logger.error(f"Error processing event: {str(e)}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }

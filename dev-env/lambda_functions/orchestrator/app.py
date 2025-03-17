@@ -3,6 +3,7 @@ import json
 
 def extractS3(event):
     if not event:
+    if not event:
         raise ValueError("Event is empty")
     
     try:
@@ -14,8 +15,16 @@ def extractS3(event):
     # Construct the file path
     file_path = f"s3://{bucket_name}/{object_key}"
     
-    return file_path
-  
+    return s3dict
+
+def get_lambda_client():
+    # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
+    if os.getenv("AWS_SAM_LOCAL", "false").lower() == "true":
+        return boto3.client("lambda", endpoint_url="http://host.docker.internal:3001")
+    else:
+        return boto3.client("lambda")
+
+
 def orch_lambda(event, context):
     try:
         file_path = extractS3(event) 

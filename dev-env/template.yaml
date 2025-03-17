@@ -4,18 +4,53 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   AWS SAM Template for Multi-Lambda Microservices
 
-Parameters:
-  ExistingBucketName:
-    Type: String
-    Description: Name of the existing S3 bucket that will trigger the Orchestrator Lambda
-    Default: "etllambdatest"
+# Parameters:
+#   ExistingBucketName:
+#     Type: String
+#     Description: Name of the existing S3 bucket that will trigger the Orchestrator Lambda
+#     Default: "etllambdatest"
 
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 120
     MemorySize: 256
 
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: "VPC ID where Lambda functions are deployed"
+    Default: "vpc-00f6bc3c21d7d91d5"
+  PrivateRouteTableIds:
+    Type: CommaDelimitedList
+    Description: "Route table IDs for the private subnets"
+    Default: "rtb-0c89919b1ec9ba6e1"
+  
+
 Resources:
+  # VPC Endpoint for S3
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref VpcId
+      RouteTableIds: !Ref PrivateRouteTableIds
+      VpcEndpointType: Gateway
+  
+  # New S3 bucket that will trigger the Orchestrator Lambda
+  OrchestratorBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # This example uses a generated bucket name. Adjust as needed.
+      BucketName: !Sub "orchestrator-bucket-${AWS::AccountId}-${AWS::Region}"
+
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: common-layer
+      Description: "Common code shared among multiple Lambda functions"
+      ContentUri: common_layer
+      CompatibleRuntimes:
+        - python3.13
 
   # Orchestrator Lambda (Triggered by S3 PutObject)
   OrchestratorFunction:
@@ -27,111 +62,115 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3ReadPolicy:  # Allows this Lambda to read from S3
-            BucketName: !Ref ExistingBucketName
+            # BucketName: !Ref OrchestratorBucket #ExistingBucketName
+            BucketName: !Sub "orchestrator-bucket-${AWS::AccountId}-${AWS::Region}"
         - Statement:  # Add this to allow invoking other Lambdas
           - Effect: Allow
             Action:
               - lambda:InvokeFunction
             Resource: !GetAtt SQLDocketIngestFunction.Arn
-      # Events:
-      #   S3PutEvent:
-      #     Type: S3
-      #     Properties:
-      #       Bucket: !Ref ExistingBucketName
-      #       Events: s3:ObjectCreated:*
+      Events:
+        S3PutEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref OrchestratorBucket
+            Events: s3:ObjectCreated:*
+      Environment:
+        Variables:
+          SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
   
-  # Permission to allow S3 to invoke the Lambda
-  OrchestratorFunctionS3Permission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref OrchestratorFunction
-      Principal: s3.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      SourceArn: !Sub "arn:aws:s3:::${ExistingBucketName}"
+  # # Permission to allow S3 to invoke the Lambda
+  # OrchestratorFunctionS3Permission:
+  #   Type: AWS::Lambda::Permission
+  #   Properties:
+  #     Action: lambda:InvokeFunction
+  #     FunctionName: !Ref OrchestratorFunction
+  #     Principal: s3.amazonaws.com
+  #     SourceAccount: !Ref AWS::AccountId
+  #     SourceArn: !Sub "arn:aws:s3:::${ExistingBucketName}"
 
-  # Custom resource Lambda to set up S3 notifications
-  S3NotificationSetupFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: index.handler
-      Runtime: python3.13
-      InlineCode: |
-        import boto3
-        import cfnresponse
-        import json
-        import logging
+  # # Custom resource Lambda to set up S3 notifications
+  # S3NotificationSetupFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: index.handler
+  #     Runtime: python3.13
+  #     InlineCode: |
+  #       import boto3
+  #       import cfnresponse
+  #       import json
+  #       import logging
 
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
+  #       logger = logging.getLogger()
+  #       logger.setLevel(logging.INFO)
 
-        def handler(event, context):
-            logger.info('Received event: %s', json.dumps(event))
+  #       def handler(event, context):
+  #           logger.info('Received event: %s', json.dumps(event))
             
-            # Extract parameters from the event
-            props = event['ResourceProperties']
-            bucket_name = props['BucketName']
-            lambda_arn = props['LambdaArn']
+  #           # Extract parameters from the event
+  #           props = event['ResourceProperties']
+  #           bucket_name = props['BucketName']
+  #           lambda_arn = props['LambdaArn']
             
-            response_data = {}
-            physical_id = f"{bucket_name}-notification"
+  #           response_data = {}
+  #           physical_id = f"{bucket_name}-notification"
             
-            try:
-                if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
-                    logger.info(f"Configuring notification for bucket {bucket_name} to Lambda {lambda_arn}")
+  #           try:
+  #               if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
+  #                   logger.info(f"Configuring notification for bucket {bucket_name} to Lambda {lambda_arn}")
                     
-                    # Create S3 client
-                    s3 = boto3.client('s3')
+  #                   # Create S3 client
+  #                   s3 = boto3.client('s3')
                     
-                    # Configure bucket notification
-                    notification_config = {
-                        'LambdaFunctionConfigurations': [
-                            {
-                                'LambdaFunctionArn': lambda_arn,
-                                'Events': ['s3:ObjectCreated:*']
-                            }
-                        ]
-                    }
+  #                   # Configure bucket notification
+  #                   notification_config = {
+  #                       'LambdaFunctionConfigurations': [
+  #                           {
+  #                               'LambdaFunctionArn': lambda_arn,
+  #                               'Events': ['s3:ObjectCreated:*']
+  #                           }
+  #                       ]
+  #                   }
                     
-                    # Apply the notification configuration
-                    s3.put_bucket_notification_configuration(
-                        Bucket=bucket_name,
-                        NotificationConfiguration=notification_config
-                    )
+  #                   # Apply the notification configuration
+  #                   s3.put_bucket_notification_configuration(
+  #                       Bucket=bucket_name,
+  #                       NotificationConfiguration=notification_config
+  #                   )
                     
-                    response_data['Message'] = f"Successfully configured notification for {bucket_name}"
-                    cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
-                elif event['RequestType'] == 'Delete':
-                    # Remove the notification configuration
-                    logger.info(f"Removing notification for bucket {bucket_name}")
+  #                   response_data['Message'] = f"Successfully configured notification for {bucket_name}"
+  #                   cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
+  #               elif event['RequestType'] == 'Delete':
+  #                   # Remove the notification configuration
+  #                   logger.info(f"Removing notification for bucket {bucket_name}")
                     
-                    s3 = boto3.client('s3')
-                    s3.put_bucket_notification_configuration(
-                        Bucket=bucket_name,
-                        NotificationConfiguration={}
-                    )
+  #                   s3 = boto3.client('s3')
+  #                   s3.put_bucket_notification_configuration(
+  #                       Bucket=bucket_name,
+  #                       NotificationConfiguration={}
+  #                   )
                     
-                    response_data['Message'] = f"Successfully removed notification for {bucket_name}"
-                    cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
-            except Exception as e:
-                logger.error('Error: %s', str(e))
-                cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, physical_id)
-      Policies:
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - 's3:PutBucketNotification'
-                - 's3:GetBucketNotification'
-              Resource: !Sub "arn:aws:s3:::${ExistingBucketName}"
+  #                   response_data['Message'] = f"Successfully removed notification for {bucket_name}"
+  #                   cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
+  #           except Exception as e:
+  #               logger.error('Error: %s', str(e))
+  #               cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, physical_id)
+  #     Policies:
+  #       - Version: '2012-10-17'
+  #         Statement:
+  #           - Effect: Allow
+  #             Action:
+  #               - 's3:PutBucketNotification'
+  #               - 's3:GetBucketNotification'
+  #             Resource: !Sub "arn:aws:s3:::${ExistingBucketName}"
 
-  # Custom resource to trigger the notification configuration
-  S3NotificationConfig:
-    Type: Custom::S3BucketNotification
-    Properties:
-      ServiceToken: !GetAtt S3NotificationSetupFunction.Arn
-      BucketName: !Ref ExistingBucketName
-      LambdaArn: !GetAtt OrchestratorFunction.Arn
+  # # Custom resource to trigger the notification configuration
+  # S3NotificationConfig:
+  #   Type: Custom::S3BucketNotification
+  #   Properties:
+  #     ServiceToken: !GetAtt S3NotificationSetupFunction.Arn
+  #     BucketName: !Ref ExistingBucketName
+  #     LambdaArn: !GetAtt OrchestratorFunction.Arn
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocketIngestFunction:
@@ -145,18 +184,26 @@ Resources:
           - sg-03e2bf8d3930f3c42
         SubnetIds:
           - subnet-0548c79ad1faa1117
+          - subnet-049c40a73343487e5
+          - subnet-0157ddb92a2e1d6ad
+          - subnet-06bae533696203b97
+          - subnet-073247252e9c9fa78
           - subnet-0e157bfea98242a74
       Layers:
         - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
+        - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
+        - !Ref CommonLayer
+      # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
+        - AmazonS3ReadOnlyAccess  # Allows reading from S3
         - AWSLambdaBasicExecutionRole
         - AmazonRDSDataFullAccess  # Allows writing to Aurora
-        - Version: '2012-10-17'  # Add Secrets Manager permissions
-          Statement:
-            - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
-              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+        # - Version: '2012-10-17'  # Add Secrets Manager permissions
+        #   Statement:
+        #     - Effect: Allow
+        #       Action:
+        #         - secretsmanager:GetSecretValue
+        #       Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
       Environment:
         Variables:
           # Remove or replace these with your DB_SECRET_NAME environment variable
@@ -171,5 +218,9 @@ Outputs:
     Value: !GetAtt OrchestratorFunction.Arn
 
   SQLDocketIngestFunctionArn:
-      Description: "SQL Docket Ingest Lambda Function ARN"
-      Value: !GetAtt SQLDocketIngestFunction.Arn
+    Description: "SQL Docket Ingest Lambda Function ARN"
+    Value: !GetAtt SQLDocketIngestFunction.Arn
+
+  OrchestratorBucketName:
+    Description: "Name of the S3 Bucket created for triggering Orchestrator"
+    Value: !Ref OrchestratorBucket
