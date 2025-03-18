@@ -31,7 +31,7 @@ touch __init__.py  # Ensures that the function is recognized as python
 
 ## Step 2: Implement the Lambda Function
 
-Edit app.py and define the Lambda handler function (we might want to have one handler name for consistency):
+Edit app.py and define the Lambda handler function (we might want to have one handler name across lambdas for consistency):
 
 ```py
 import json
@@ -57,30 +57,21 @@ Go to dev-env/template.yaml and add a new AWS Lambda resource under Resources (T
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: lambda_functions/my_new_lambda/
-      Handler: app.handler
+      Handler: app.handler      # Mame of the handler function you made above
       Runtime: python3.13
-      Timeout: 10
-      MemorySize: 256
-      Policies:
+      Timeout: 10       # If you need it to be different than the template default
+      MemorySize: 256   # If you need it to be different than the template default
+      Policies:         # Any policies / roles that your lambda might need to run correctly ***CAN ALSO BE REPLACED WITH ROLE: and use a custom made role in AWS ***
         - AWSLambdaBasicExecutionRole
-```
-
-If the Lambda Needs an Event Trigger (e.g., S3, API Gateway, EventBridge)
-S3 Trigger Example:
-
-```yaml
+      # If the Lambda Needs an Event Trigger (e.g., S3, API Gateway, EventBridge)
       Events:
+        # S3 Trigger Example:
         S3Trigger:
           Type: S3
           Properties:
             Bucket: !Ref ExistingDataBucket
             Events: s3:ObjectCreated:*
-```
-
-API Gateway Trigger Example:
-
-```yaml
-      Events:
+        # API Gateway Trigger Example:
         Api:
           Type: Api
           Properties:
@@ -90,18 +81,20 @@ API Gateway Trigger Example:
 
 ## Step 5: Install Dependencies (If Needed)
 
-If your Lambda requires additional Python packages, list them in requirements.txt, then install locally:
-
-```bash
-cd lambda_functions/my_new_lambda
-pip install -r requirements.txt -t 
-```
+If your Lambda requires additional Python packages, list them in requirements.txt:
 
 If you need boto3, requests, etc., add them to requirements.txt:
 
 ```txt
 boto3
 requests
+```
+
+This ensures that they are installed when SAM does its build and deploy for the lambda functions. If wanted, you can also install them for yourself in your .venv with the following commands:
+
+```bash
+cd lambda_functions/my_new_lambda
+pip install -r requirements.txt -t 
 ```
 
 ## Step 6: Write Unit Tests
@@ -120,17 +113,23 @@ def test_my_new_lambda():
     assert body["message"] == "Hello from My New Lambda!"
 ```
 
-Run tests using:
+Run tests from `dev-env` using:
 
 ```bash
 pytest tests/my_new_lambda/
+```
+
+or just
+
+```bash
+pytest
 ```
 
 ## Step 7: Update the GitHub Actions Workflow (If Needed)
 
 Since our GitHub Actions runs tests before deployment, ensure it detects the new Lambda
 
-- This should be okay, as github testing should test the whole tests folder, but good to know
+- This should be okay and need no special actions, as github testing should test the whole tests folder, but good to know
 
 ## Step 8: GITHUB ACTIONS deploys the Updated AWS SAM Project on Merge in main
 
@@ -141,6 +140,7 @@ However, this is essentially what the github actions workflow is doing when it d
 ```bash
 cd dev-env  # Make sure you're in the right directory
 sam build
+sam validate
 sam deploy
 ```
 
