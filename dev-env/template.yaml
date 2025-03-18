@@ -35,6 +35,15 @@ Resources:
       VpcId: !Ref VpcId
       RouteTableIds: !Ref PrivateRouteTableIds
       VpcEndpointType: Gateway
+
+  # VPC Endpoint for Secrets Manager
+  SecretsManagerVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
+      VpcId: !Ref VpcId
+      RouteTableIds: !Ref PrivateRouteTableIds
+      VpcEndpointType: Gateway
   
   # New S3 bucket that will trigger the Orchestrator Lambda
   OrchestratorBucket:
@@ -196,20 +205,21 @@ Resources:
       # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
         - AmazonS3ReadOnlyAccess  # Allows reading from S3
+        
         - AWSLambdaBasicExecutionRole
         - AmazonRDSDataFullAccess  # Allows writing to Aurora
-        # - Version: '2012-10-17'  # Add Secrets Manager permissions
-        #   Statement:
-        #     - Effect: Allow
-        #       Action:
-        #         - secretsmanager:GetSecretValue
-        #       Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+        - Version: '2012-10-17'  # Add Secrets Manager permissions
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master"  
       Environment:
         Variables:
           # Remove or replace these with your DB_SECRET_NAME environment variable
           # AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
           # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
-          DB_SECRET_NAME: "mirrulationsdb/postgres/master-uA4mKl"  # Name of your secret in Secrets Manager
+          DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
 
 Outputs:
 
