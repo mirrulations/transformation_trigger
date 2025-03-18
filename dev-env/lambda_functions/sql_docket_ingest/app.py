@@ -1,44 +1,56 @@
 import json
-# import os
+import os
 import psycopg
 import boto3
-# from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError
 from common.ingest import ingest_docket
 
-# def get_secret(secret_name):
-#     """
-#     Retrieve a secret from AWS Secrets Manager
+def get_secret(secret_name):
+    """
+    Retrieve a secret from AWS Secrets Manager
+    Args:
+        secret_name: Name of the secret to retrieve
+    Returns:
+        dict: The secret key/value pairs
+    """
+    region_name = os.environ.get('AWS_REGION', 'us-east-1')
 
-#     Args:
-#         secret_name: Name of the secret to retrieve
- 
-#     Returns:
-#         dict: The secret key/value pairs
-#     """
-#     region_name = os.environ.get('AWS_REGION', 'us-east-1')
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
 
-#     # Create a Secrets Manager client
-#     session = boto3.session.Session()
-#     client = session.client(
-#         service_name='secretsmanager',
-#         region_name=region_name
-#     )
+    try:
+        # Get the secret value
+        response = client.get_secret_value(SecretId=secret_name)
 
-#     try:
-#         # Get the secret value
-#         response = client.get_secret_value(SecretId=secret_name)
+        # Decode and parse the secret string JSON
+        if 'SecretString' in response:
+            secret = json.loads(response['SecretString'])
+            return secret
+        else:
+            print("Secret not found in expected format")
+            raise Exception("Secret not found in expected format")
 
-#         # Decode and parse the secret string JSON
-#         if 'SecretString' in response:
-#             secret = json.loads(response['SecretString'])
-#             return secret
-#         else:
-#             logger.error("Secret not found in expected format")
-#             raise Exception("Secret not found in expected format")
+    except ClientError as e:
+        print(f"Error retrieving secret: {str(e)}")
+        raise e
+    
+def get_db_connection():
+    """
+    Retrieve a connection to the PostgreSQL database
+    """
+    secret_name = os.environ.get('DB_SECRET_NAME')
+    secret = get_secret(secret_name)
 
-#     except ClientError as e:
-#         logger.error(f"Error retrieving secret: {str(e)}")
-#         raise e
+    os.putenv("POSTGRES_HOST",secret['host'])
+    os.putenv("POSTGRES_PORT",secret['port'])
+    os.putenv("POSTGRES_DB",secret['db'])
+    os.putenv("POSTGRES_USER",secret['username'])
+    os.putenv("POSTGRES_PASSWORD",secret['password'])
+
 
 def handler(event, context):
     """
@@ -65,9 +77,10 @@ def handler(event, context):
 
         if not file_content:
             raise ValueError("File content is empty")
-        
-        print('file key' + s3dict['file_key'])
+
         if 'docket' in s3dict['file_key']:
+            #set environment variables
+            get_db_connection()
             print("ingesting")
             ingest_docket(file_content)
             print("ingest complete!")
