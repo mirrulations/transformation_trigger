@@ -229,6 +229,31 @@ Resources:
           # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
 
+  SQLDocumentIngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/sql_document_ingest/
+      Handler: app.handler      # Mame of the handler function you made above
+      Runtime: python3.13
+      Timeout: 10       # If you need it to be different than the template default
+      MemorySize: 256   # If you need it to be different than the template default
+      Policies:         # Any policies / roles that your lambda might need to run correctly ***CAN ALSO BE REPLACED WITH ROLE: and use a custom made role in AWS ***
+        - AWSLambdaBasicExecutionRole
+      # If the Lambda Needs an Event Trigger (e.g., S3, API Gateway, EventBridge)
+      Events:
+        # S3 Trigger Example:
+        S3Trigger:
+          Type: S3
+          Properties:
+            Bucket: !Ref ExistingDataBucket
+            Events: s3:ObjectCreated:*
+        # API Gateway Trigger Example:
+        Api:
+          Type: Api
+          Properties:
+            Path: /sql_document_ingest
+            Method: get
+
 Outputs:
 
   OrchestratorFunctionArn:
@@ -242,3 +267,4 @@ Outputs:
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
     Value: !Ref OrchestratorBucket
+
