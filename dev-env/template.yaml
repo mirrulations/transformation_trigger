@@ -95,6 +95,7 @@ Resources:
       Environment:
         Variables:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
+          SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
   
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
