@@ -1,22 +1,19 @@
 import boto3
 import json
-import os
 
 def extractS3(event):
     if not event:
+    if not event:
         raise ValueError("Event is empty")
-
+    
     try:
         bucket_name = event['Records'][0]['s3']['bucket']['name']
         object_key = event['Records'][0]['s3']['object']['key']
     except (KeyError, IndexError) as e:
         raise ValueError(f"Cannot extract S3 information from event: {e}")
-
-    # Construct the s3 dictionary
-    s3dict = {
-        "bucket": bucket_name,
-        "file_key": object_key
-    }
+    
+    # Construct the file path
+    file_path = f"s3://{bucket_name}/{object_key}"
     
     return s3dict
 
@@ -29,36 +26,33 @@ def get_lambda_client():
 
 
 def orch_lambda(event, context):
-    lambda_client = get_lambda_client()
-
-    # Retrieve the SQL ingest function's name (or ARN) from the environment
-    sql_docket_function = os.environ.get("SQL_DOCKET_INGEST_FUNCTION")
-    if not sql_docket_function:
-        raise Exception("SQL ingest function name is not set in the environment variables")
-    
-
     try:
-        s3dict = extractS3(event)
-        print(s3dict)
-
-        if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
-            print("docket json found!")
+        file_path = extractS3(event) 
+        
+        if '.json' in file_path and 'docket' in file_path:
+            lambda_client = boto3.client('lambda')
             response = lambda_client.invoke(
-                FunctionName=sql_docket_function,
+                FunctionName='SQLDocketIngestFunction',
                 InvocationType='RequestResponse',
-                Payload=json.dumps(s3dict)
+                Payload=json.dumps({"file_path": file_path}).encode("utf-8")
+            )
+        elif '.json' in file_path and 'comment' in file_path:
+            lambda_client = boto3.client('lambda')
+            response = lambda_client.invoke(
+                FunctionName='OSCommentIngestFunction',
+                InvocationType='RequestResponse',
+                Payload=json.dumps({"file_path": file_path}).encode("utf-8")
             )
             return {
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
         else:
-            print("File not processed")
             return {
                 'statusCode': 200,
                 'body': json.dumps('File not processed - not a docket JSON file')
             }
-
+            
     except ValueError as e:
         return {
             'statusCode': 400,
@@ -69,4 +63,3 @@ def orch_lambda(event, context):
             'statusCode': 500,
             'body': json.dumps(f'Unexpected error: {str(e)}')
         }
-    
