@@ -35,6 +35,9 @@ def orch_lambda(event, context):
     sql_docket_function = os.environ.get("SQL_DOCKET_INGEST_FUNCTION")
     if not sql_docket_function:
         raise Exception("SQL ingest function name is not set in the environment variables")
+    sql_document_function = os.environ.get("SQL_DOCUMENT_INGEST_FUNCTION")
+    if not sql_document_function:
+        raise Exception("SQL ingest function name is not set in the environment variables")
     
     pdf_extract_function = os.environ.get("PDF_TEXT_EXTRACT_FUNCTION")
     if not pdf_extract_function:
@@ -67,13 +70,24 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
+            
+        elif '.json' in s3dict['file_key'] and 'document' in s3dict['file_key']:
+            print("document json found!")
+            response = lambda_client.invoke(
+                FunctionName=sql_document_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict) 
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
         else:
             print('File not processed')
             return {
                 'statusCode': 400,
-                'body': json.dumps('File not processed - not a docket JSON or PDF')
+                'body': json.dumps('File not processed - not a docket or document JSON or PDF file')
         }
-
     except ValueError as e:
         return {
             'statusCode': 400,

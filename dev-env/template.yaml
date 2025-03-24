@@ -43,6 +43,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       VpcId: !Ref VpcId
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SecurityGroupIds:
         - sg-03e2bf8d3930f3c42
       SubnetIds:
@@ -99,8 +100,9 @@ Resources:
       Environment:
         Variables:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
+          SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
           PDF_TEXT_EXTRACT_FUNCTION: !Ref PDFTextExtractFunction
-  
+
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
   #   Type: AWS::Lambda::Permission
@@ -234,10 +236,11 @@ Resources:
           # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
 
-  PDFTextExtractFunction:
+  # SQL Docket Ingest Lambda (Triggered by Orchestrator)
+  SQLDocumentIngestFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/pdf_text_extract
+      CodeUri: lambda_functions/sql_document_ingest/
       Handler: app.handler
       Runtime: python3.13
       VpcConfig:
@@ -255,21 +258,60 @@ Resources:
       Policies:
         - AmazonS3ReadOnlyAccess
         - AWSLambdaBasicExecutionRole
-        #- AmazonRDSDataFullAccess #TODO
+        - AmazonRDSDataFullAccess #TODO
+        - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
+        - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
+        - !Ref CommonLayer
+      # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
+      Policies:
+        - AmazonS3ReadOnlyAccess  # Allows reading from S3
+        
+        - AWSLambdaBasicExecutionRole
+        - AmazonRDSDataFullAccess  # Allows writing to Aurora
+        - Version: '2012-10-17'  # Add Secrets Manager permissions
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+      Environment:
+        Variables:
+          # Remove or replace these with your DB_SECRET_NAME environment variable
+          # AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
+          # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
+          DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+          
+  PDFTextExtractFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/pdf_text_extract
+      Handler: app.handler
+      Runtime: python3.13
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+       - AmazonS3ReadOnlyAccess
+       - AWSLambdaBasicExecutionRole
+       #- AmazonRDSDataFullAccess #TODO          
 
 Outputs:
   OrchestratorFunctionArn:
     Description: "Orchestrator Lambda Function ARN"
     Value: !GetAtt OrchestratorFunction.Arn
 
-  PDFTextExtractFunctionArn:
-    Description: "PDF Text Extraction Lambda Function ARN"
-    Value: !GetAtt PDFTextExtractFunction.Arn
+  SQLDocumentIngestFunctionArn:
+    Description: "SQL Document Ingest Lambda Function ARN"
+    Value: !GetAtt SQLDocumentIngestFunction.Arn
 
   SQLDocketIngestFunctionArn:
     Description: "SQL Docket Ingest Lambda Function ARN"
     Value: !GetAtt SQLDocketIngestFunction.Arn
+    
+  PDFTextExtractFunctionArn:
+    Description: "PDF Text Extraction Lambda Function ARN"
+    Value: !GetAtt PDFTextExtractFunction.Arn
 
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
     Value: !Ref OrchestratorBucket
+
