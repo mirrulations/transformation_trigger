@@ -45,12 +45,8 @@ def get_db_connection():
    secret_name = os.environ.get('DB_SECRET_NAME')
    secret = get_secret(secret_name)
 
-   os.putenv("POSTGRES_HOST",secret['host'])
-   os.putenv("POSTGRES_PORT",secret['port'])
-   os.putenv("POSTGRES_DB",secret['db'])
-   os.putenv("POSTGRES_USER",secret['username'])
-   os.putenv("POSTGRES_PASSWORD",secret['password'])
-
+   os.putenv("OPENSEARCH_HOST",secret['host'])
+   os.putenv("OPENSEARCH_PORT",secret['port'])
 
 def handler(event, context):
    """
