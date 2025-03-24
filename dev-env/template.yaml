@@ -221,7 +221,7 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
-              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master"  
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
       Environment:
         Variables:
           # Remove or replace these with your DB_SECRET_NAME environment variable

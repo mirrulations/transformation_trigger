@@ -25,6 +25,7 @@ def get_secret(secret_name):
     try:
         # Get the secret value
         response = client.get_secret_value(SecretId=secret_name)
+        print(response)
 
         # Decode and parse the secret string JSON
         if 'SecretString' in response:
@@ -74,12 +75,14 @@ def handler(event, context):
         s3 = boto3.client('s3')
         file_obj = s3.get_object(Bucket=s3dict['bucket'], Key=s3dict['file_key'])
         file_content = file_obj['Body'].read().decode('utf-8')
+        print("File content Retrieved!")
 
         if not file_content:
             raise ValueError("File content is empty")
 
         if 'docket' in s3dict['file_key']:
             #set environment variables
+            print("getting db connection")
             get_db_connection()
             print("ingesting")
             ingest_docket(file_content)
