@@ -259,7 +259,7 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
-              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/opensearch/master"  
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/opensearch/master-7xJt7C"
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/opensearch/master"  # Name of the secret in Secrets Manager
