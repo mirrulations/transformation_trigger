@@ -37,6 +37,6 @@ def handler(event, context):
     except Exception as e:
         # logger.error(f"Error processing event: {str(e)}")
         return {
-            'statusCode': 500,
+            'statusCode': 400,
             'body': json.dumps({'error': str(e)})
         }
