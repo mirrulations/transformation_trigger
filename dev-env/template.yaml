@@ -43,6 +43,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       VpcId: !Ref VpcId
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SecurityGroupIds:
         - sg-03e2bf8d3930f3c42
       SubnetIds:
