@@ -45,7 +45,7 @@ def orch_lambda(event, context):
         s3dict = extractS3(event)
         print(s3dict)
 
-        if '.pdf' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
+        if '.pdf' in s3dict['file_key'] and 'comment' in s3dict['file_key']:
             print('docket pdf found')
             response = lambda_client.invoke(
                 FunctionName=pdf_extract_function,

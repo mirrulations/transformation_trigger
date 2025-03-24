@@ -266,7 +266,6 @@ Outputs:
     Description: "PDF Text Extraction Lambda Function ARN"
     Value: !GetAtt PDFTextExtractFunction.Arn
 
-
   SQLDocketIngestFunctionArn:
     Description: "SQL Docket Ingest Lambda Function ARN"
     Value: !GetAtt SQLDocketIngestFunction.Arn
