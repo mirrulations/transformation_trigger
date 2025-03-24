@@ -1,18 +1,18 @@
 import psycopg
 import os
+from common.utils.secrets import get_secret
+
 def connect():
-    dbname = os.getenv("POSTGRES_DB")
-    username = os.getenv("POSTGRES_USER")
-    password = os.getenv("POSTGRES_PASSWORD")
-    host = os.getenv("POSTGRES_HOST")
-    port = os.getenv("POSTGRES_PORT")
+
+    secret_name = os.environ.get('DB_SECRET_NAME')
+    secret = get_secret(secret_name)
 
     conn_params = {
-        "dbname": dbname,
-        "user": username,
-        "password": password,
-        "host": host,
-        "port": port,
+        "dbname": secret['db'],
+        "user": secret['username'],
+        "password": secret['password'],
+        "host": secret['host'],
+        "port": secret['port'],
     }
 
     conn = psycopg.connect(**conn_params)
