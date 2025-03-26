@@ -70,7 +70,7 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
-        elif '.json' not in s3dict['file_key'] and 'comment' in s3dict['file_key']:
+        elif '.json' in s3dict['file_key'] and 'comments' in s3dict['file_key']:
             print("comment json found!")
             response = lambda_client.invoke(
                 FunctionName=open_search_function,
