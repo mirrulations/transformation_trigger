@@ -4,6 +4,7 @@ from pypdf import PdfReader as Re
 
 def extract_text(filename):
     file = Re(filename)
+    #TODO try and pipe the file back through the function
     with open("output.txt", "w") as f:
         for page in file.pages:
             f.write(page.extract_text())
@@ -12,6 +13,7 @@ def handler(event, context):
     print(f"Received event: {json.dumps(event)}")
 
     try:
+        #FIXME how can i get a pdf file from the orchestrator?
         # Handle direct Lambda invocations
         s3dict = event
         print("Data: ", s3dict)
@@ -30,7 +32,6 @@ def handler(event, context):
 
         return {
             'statusCode': 200,
-
             'body': json.dumps({'message': 'Data processed successfully'})
         }
         
