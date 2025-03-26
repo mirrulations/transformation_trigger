@@ -86,7 +86,11 @@ Resources:
           - Effect: Allow
             Action:
               - lambda:InvokeFunction
-            Resource: !GetAtt SQLDocketIngestFunction.Arn
+            Resource: 
+              - !GetAtt SQLDocketIngestFunction.Arn
+              - !GetAtt SQLDocumentIngestFunction.Arn
+              - !GetAtt OpenSearchCommentFunction.Arn
+          
       Events:
         S3PutEvent:
           Type: S3
