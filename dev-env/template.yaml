@@ -97,6 +97,7 @@ Resources:
         Variables:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
           SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
+          OPENSEARCH_COMMENT_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
   
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
@@ -324,6 +325,10 @@ Outputs:
   SQLDocketIngestFunctionArn:
     Description: "SQL Docket Ingest Lambda Function ARN"
     Value: !GetAtt SQLDocketIngestFunction.Arn
+
+  OpenSearchCommentFunctionArn:
+    Description: "OpenSearch Comment Ingest Lambda Function ARN"
+    Value: !GetAtt OpenSearchCommentFunction.Arn
 
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
