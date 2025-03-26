@@ -100,10 +100,8 @@ def test_orch_lambda_docket_json(aws_credentials):
         # Verify lambda was called correctly
         mock_boto.assert_called_once_with('lambda')
         expected_payload = json.dumps({
-            "s3dict": {
                 "bucket": "test-bucket",
                 "file_key": "path/to/docket_file.json"
-            }
         }).encode("utf-8")
         mock_lambda.invoke.assert_called_once_with(
             FunctionName='SQLDocketIngestFunction',
