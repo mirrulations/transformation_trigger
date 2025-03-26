@@ -78,7 +78,7 @@ def test_handler_with_docket_file(mock_s3_bucket, sample_docket_json):
     }
     
     # Mock the ingest_docket function
-    with patch('lambda_functions.sql_docket_ingest.app.ingest_docket') as mock_ingest:
+    with patch('common.ingest.ingest_docket') as mock_ingest:
         # Execute the handler
         response = handler(event, {})
         

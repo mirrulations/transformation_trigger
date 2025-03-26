@@ -1,5 +1,4 @@
 import json
-import os
 import boto3
 from common.ingest import ingest_docket
 
@@ -29,7 +28,7 @@ def handler(event, context):
             raise ValueError("File content is empty")
 
         if 'docket' in s3dict['file_key']:
-            #set environment variables
+            #set environment variables and ingest docket
             print("ingesting")
             ingest_docket(file_content)
             print("ingest complete!")
