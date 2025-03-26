@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import certifi
 import boto3
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
+from common.utils.secrets import get_secret
 
 '''
 This function creates an OpenSearch client. If the environment variables OPENSEARCH_HOST if OPENSEARCH_PORT are not
@@ -15,8 +16,11 @@ Outside of the function, interaction with the client is the same regardless of t
 def connect():
     load_dotenv()
 
-    host = os.getenv('OPENSEARCH_HOST')
-    port = os.getenv('OPENSEARCH_PORT')
+    secret_name = os.getenv('DB_SECRET_NAME')
+    secret = get_secret(secret_name)
+
+    host = secret['host']
+    port = secret['port']
     region = 'us-east-1'
 
     if host is None or port is None:
