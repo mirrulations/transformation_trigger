@@ -278,7 +278,7 @@ Resources:
   OpenSearchCommentFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/opensearch/
+      CodeUri: lambda_functions/open_search/
 
       Handler: app.handler
       Runtime: python3.13
