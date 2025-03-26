@@ -29,7 +29,7 @@ def handler(event, context):
        if not file_content:
            raise ValueError("File content is empty")
 
-       if 'comments' in s3dict['file_key']:
+       if 'comment' in s3dict['file_key']:
            #set environment variables and ingest comment
            print("ingesting")
            ingest_comment(file_content)
