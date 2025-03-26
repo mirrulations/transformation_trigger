@@ -1,19 +1,19 @@
 import json
 import boto3
-from common.ingest import ingest_docket
+from pypdf import PdfReader as Re
+
+def extract_text(filename):
+    file = Re(filename)
+    #TODO try and pipe the file back through the function
+    with open("output.txt", "w") as f:
+        for page in file.pages:
+            f.write(page.extract_text())
 
 def handler(event, context):
-    """
-    Lambda handler that processes data from another Lambda invocation
-    and stores it in a PostgreSQL database.
-    
-    Args:
-        event (dict): Contains the payload from the invoking Lambda
-        context: Lambda context object
-    """
     print(f"Received event: {json.dumps(event)}")
-    
+
     try:
+        #FIXME how can i get a pdf file from the orchestrator?
         # Handle direct Lambda invocations
         s3dict = event
         print("Data: ", s3dict)
@@ -23,16 +23,13 @@ def handler(event, context):
         file_obj = s3.get_object(Bucket=s3dict['bucket'], Key=s3dict['file_key'])
         file_content = file_obj['Body'].read().decode('utf-8')
         print("File content Retrieved!")
+        # extract the text, we know it is a pdf file from the checks in the orchestrator function
+        extract_text(file_content)
+
 
         if not file_content:
             raise ValueError("File content is empty")
 
-        if 'docket' in s3dict['file_key']:
-            #set environment variables and ingest docket
-            print("ingesting")
-            ingest_docket(file_content)
-            print("ingest complete!")
-        
         return {
             'statusCode': 200,
             'body': json.dumps({'message': 'Data processed successfully'})
@@ -41,6 +38,6 @@ def handler(event, context):
     except Exception as e:
         # logger.error(f"Error processing event: {str(e)}")
         return {
-            'statusCode': 500,
+            'statusCode': 400,
             'body': json.dumps({'error': str(e)})
         }

@@ -42,12 +42,27 @@ def orch_lambda(event, context):
     if not open_search_function:
         raise Exception("OpenSearch ingest function name is not set in the environment variables")
     
+    pdf_extract_function = os.environ.get("PDF_TEXT_EXTRACT_FUNCTION")
+    if not pdf_extract_function:
+        raise Exception("PDF text extraction function name is not set in the environment variables")
+    
 
     try:
         s3dict = extractS3(event)
         print(s3dict)
 
-        if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
+        if '.pdf' in s3dict['file_key'] and 'comment' in s3dict['file_key']:
+            print('docket pdf found')
+            response = lambda_client.invoke(
+                FunctionName=pdf_extract_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
+        elif '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
             print("docket json found!")
             response = lambda_client.invoke(
                 FunctionName=sql_docket_function,
@@ -78,11 +93,11 @@ def orch_lambda(event, context):
                 Payload=json.dumps(s3dict)
             )
         else:
-            print("File not processed")
+            print('File not processed')
             return {
-                'statusCode': 200,
-                'body': json.dumps('File not processed - not a docket JSON or document JSON file')
-            }
+                'statusCode': 400,
+                'body': json.dumps('File not processed - not a docket or document JSON or PDF file')
+        }
     except ValueError as e:
         return {
             'statusCode': 400,

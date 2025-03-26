@@ -13,5 +13,8 @@ pytest-mock
 flake8
 # black
 
+# pypdf for text extraction
+pypdf
+
 # SAM CLI for local testing (optional)
 # aws-sam-cli
