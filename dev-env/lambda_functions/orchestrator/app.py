@@ -49,7 +49,7 @@ def orch_lambda(event, context):
             response = lambda_client.invoke(
                 FunctionName=sql_docket_function,
                 InvocationType='RequestResponse',
-                Payload=json.dumps(s3dict)
+                Payload=json.dumps(s3dict).encode('utf-8')
             )
             return {
                 'statusCode': 200,
@@ -61,7 +61,7 @@ def orch_lambda(event, context):
             response = lambda_client.invoke(
                 FunctionName=sql_document_function,
                 InvocationType='RequestResponse',
-                Payload=json.dumps(s3dict) 
+                Payload=json.dumps(s3dict)
             )
             return {
                 'statusCode': 200,
