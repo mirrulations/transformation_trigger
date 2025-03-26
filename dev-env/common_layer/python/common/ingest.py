@@ -8,11 +8,11 @@ from .utils.ingest_opensearch import ingest_comment_from_text as insert_comment_
 
 def ingest_comment(contents):
     os = connect_opensearch()
-    sql = connect_sql()
-    insert_comment(sql,contents)
+   #sql = connect_sql()
+   #insert_comment(sql,contents)
     insert_comment_os(os,contents)
-    sql.commit()
-    sql.close()
+   #sql.commit()
+   #sql.close()
 
 def ingest_document(contents):
     sql = connect_sql()

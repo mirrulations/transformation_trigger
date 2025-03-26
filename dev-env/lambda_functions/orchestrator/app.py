@@ -38,6 +38,9 @@ def orch_lambda(event, context):
     sql_document_function = os.environ.get("SQL_DOCUMENT_INGEST_FUNCTION")
     if not sql_document_function:
         raise Exception("SQL ingest function name is not set in the environment variables")
+    open_search_function = os.environ.get("OPEN_SEARCH_INGEST_FUNCTION")
+    if not open_search_function:
+        raise Exception("OpenSearch ingest function name is not set in the environment variables")
     
     pdf_extract_function = os.environ.get("PDF_TEXT_EXTRACT_FUNCTION")
     if not pdf_extract_function:
@@ -82,6 +85,13 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
+        elif '.json' not in s3dict['file_key'] and 'comment' in s3dict['file_key']:
+            print("comment json found!")
+            response = lambda_client.invoke(
+                FunctionName=open_search_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
         else:
             print('File not processed')
             return {
