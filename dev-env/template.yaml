@@ -326,6 +326,10 @@ Outputs:
     Description: "SQL Docket Ingest Lambda Function ARN"
     Value: !GetAtt SQLDocketIngestFunction.Arn
 
+  OpenSearchCommentFunctionArn:
+    Description: "OpenSearch Comment Ingest Lambda Function ARN"
+    Value: !GetAtt OpenSearchCommentFunction.Arn
+
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
     Value: !Ref OrchestratorBucket
