@@ -11,10 +11,10 @@ def ingest_comment_from_text(client, content):
         'docketId': data['data']['attributes']['docketId'],
         'commentId': data['data']['id']
     }
-    ingest(client, document)
+    ingest(client, document, id = document['commentId'])
 
-def ingest(client, document):
-    response = client.index(index = 'comments', body = document)
+def ingest(client, document, id):
+    response = client.index(index = 'comments', body = document, id = id)
     print(response)
 
 def ingest_comment(client, bucket, key):
