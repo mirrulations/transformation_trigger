@@ -74,6 +74,7 @@ Resources:
   OrchestratorFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-OrchestratorFunction"
       CodeUri: lambda_functions/orchestrator/
       Handler: app.orch_lambda
       Runtime: python3.13
@@ -103,6 +104,15 @@ Resources:
           SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
           OPENSEARCH_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
   
+  OrchestratorLambdaSNSPermission:
+  Type: AWS::Lambda::Permission
+  Properties:
+    FunctionName: !Ref OrchestratorFunction
+    Action: lambda:InvokeFunction
+    Principal: sns.amazonaws.com
+    # The external SNS topic ARN (from the external account)
+    SourceArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
+
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
   #   Type: AWS::Lambda::Permission
