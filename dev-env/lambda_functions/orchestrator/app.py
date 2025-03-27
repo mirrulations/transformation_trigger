@@ -6,19 +6,24 @@ def extractS3(event):
     if not event:
         raise ValueError("Event is empty")
 
+    # Check if event is wrapped by SNS
+    record = event['Records'][0]
+    if 'Sns' in record:
+        # Parse the inner SNS message, which is a JSON string
+        message = json.loads(record['Sns']['Message'])
+    else:
+        message = event
+
     try:
-        bucket_name = event['Records'][0]['s3']['bucket']['name']
-        object_key = event['Records'][0]['s3']['object']['key']
+        bucket_name = message['Records'][0]['s3']['bucket']['name']
+        object_key = message['Records'][0]['s3']['object']['key']
     except (KeyError, IndexError) as e:
         raise ValueError(f"Cannot extract S3 information from event: {e}")
 
-    # Construct the s3 dictionary
-    s3dict = {
+    return {
         "bucket": bucket_name,
         "file_key": object_key
     }
-    
-    return s3dict
 
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
@@ -46,6 +51,16 @@ def orch_lambda(event, context):
     try:
         s3dict = extractS3(event)
         print(s3dict)
+        print("Bucket: ", s3dict['bucket'])
+        print("File Key: ", s3dict['file_key'])
+
+        # Add filter: only process files under the "raw-data/" folder.
+        if not s3dict['file_key'].startswith("raw-data/"):
+            print("File not in raw-data folder. Skipping processing.")
+            return {
+                'statusCode': 200,
+                'body': json.dumps("File not processed - not in raw-data folder")
+            }
 
         if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
             print("docket json found!")
