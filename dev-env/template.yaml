@@ -105,13 +105,13 @@ Resources:
           OPENSEARCH_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
   
   OrchestratorLambdaSNSPermission:
-  Type: AWS::Lambda::Permission
-  Properties:
-    FunctionName: !Ref OrchestratorFunction
-    Action: lambda:InvokeFunction
-    Principal: sns.amazonaws.com
-    # The external SNS topic ARN (from the external account)
-    SourceArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrchestratorFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      # The external SNS topic ARN (from the external account)
+      SourceArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
 
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
