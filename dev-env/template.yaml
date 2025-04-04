@@ -74,6 +74,7 @@ Resources:
   OrchestratorFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-OrchestratorFunction"
       CodeUri: lambda_functions/orchestrator/
       Handler: app.orch_lambda
       Runtime: python3.13
@@ -86,11 +87,11 @@ Resources:
           - Effect: Allow
             Action:
               - lambda:InvokeFunction
-            Resource: !GetAtt SQLDocketIngestFunction.Arn
-          - Effect: Allow
-            Action:
-              - lambda:InvokeFunction
-            Resource: !GetAtt PDFTextExtractFunction.Arn
+            Resource: 
+              - !GetAtt SQLDocketIngestFunction.Arn
+              - !GetAtt SQLDocumentIngestFunction.Arn
+              - !GetAtt OpenSearchCommentFunction.Arn
+              - !GetAtt PDFTextExtractFunction.Arn
       Events:
         S3PutEvent:
           Type: S3
@@ -101,8 +102,18 @@ Resources:
         Variables:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
           SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
-          OPENSEARCH_COMMENT_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
+          OPENSEARCH_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
           PDF_TEXT_EXTRACT_FUNCTION: !Ref PDFTextExtractFunction
+  
+  OrchestratorLambdaSNSPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrchestratorFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      # The external SNS topic ARN (from the external account)
+      SourceArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
+
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
   #   Type: AWS::Lambda::Permission
@@ -292,7 +303,7 @@ Resources:
   OpenSearchCommentFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/opensearch/
+      CodeUri: lambda_functions/open_search/
 
       Handler: app.handler
       Runtime: python3.13
@@ -310,17 +321,17 @@ Resources:
         - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
         - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
         - !Ref CommonLayer
-      # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
-      Policies:
-        - AmazonS3ReadOnlyAccess  # Allows reading from S3
-        - AWSLambdaBasicExecutionRole
+      Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
+      # Policies:
+      #   - AmazonS3ReadOnlyAccess  # Allows reading from S3
+      #   - AWSLambdaBasicExecutionRole
 
-        - Version: '2012-10-17'  # Add Secrets Manager permissions
-          Statement:
-            - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
-              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/opensearch/master-7xJt7C"
+      #   - Version: '2012-10-17'  # Add Secrets Manager permissions
+      #     Statement:
+      #       - Effect: Allow
+      #         Action:
+      #           - secretsmanager:GetSecretValue
+      #         Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/opensearch/master-7xJt7C"
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/opensearch/master"  # Name of the secret in Secrets Manager

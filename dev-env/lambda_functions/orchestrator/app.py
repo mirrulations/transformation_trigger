@@ -6,19 +6,24 @@ def extractS3(event):
     if not event:
         raise ValueError("Event is empty")
 
+    # Check if event is wrapped by SNS
+    record = event['Records'][0]
+    if 'Sns' in record:
+        # Parse the inner SNS message, which is a JSON string
+        message = json.loads(record['Sns']['Message'])
+    else:
+        message = event
+
     try:
-        bucket_name = event['Records'][0]['s3']['bucket']['name']
-        object_key = event['Records'][0]['s3']['object']['key']
+        bucket_name = message['Records'][0]['s3']['bucket']['name']
+        object_key = message['Records'][0]['s3']['object']['key']
     except (KeyError, IndexError) as e:
         raise ValueError(f"Cannot extract S3 information from event: {e}")
 
-    # Construct the s3 dictionary
-    s3dict = {
+    return {
         "bucket": bucket_name,
         "file_key": object_key
     }
-    
-    return s3dict
 
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
@@ -38,8 +43,8 @@ def orch_lambda(event, context):
     sql_document_function = os.environ.get("SQL_DOCUMENT_INGEST_FUNCTION")
     if not sql_document_function:
         raise Exception("SQL ingest function name is not set in the environment variables")
-    open_search_function = os.environ.get("OPEN_SEARCH_INGEST_FUNCTION")
-    if not open_search_function:
+    opensearch_function = os.environ.get("OPENSEARCH_INGEST_FUNCTION")
+    if not opensearch_function:
         raise Exception("OpenSearch ingest function name is not set in the environment variables")
     
     pdf_extract_function = os.environ.get("PDF_TEXT_EXTRACT_FUNCTION")
@@ -50,6 +55,16 @@ def orch_lambda(event, context):
     try:
         s3dict = extractS3(event)
         print(s3dict)
+        print("Bucket: ", s3dict['bucket'])
+        print("File Key: ", s3dict['file_key'])
+
+        # Add filter: only process files under the "raw-data/" folder.
+        if not s3dict['file_key'].startswith("raw-data/"):
+            print("File not in raw-data folder. Skipping processing.")
+            return {
+                'statusCode': 200,
+                'body': json.dumps("File not processed - not in raw-data folder")
+            }
 
         if '.pdf' in s3dict['file_key'] and 'comment' in s3dict['file_key']:
             print('docket pdf found')
@@ -67,7 +82,7 @@ def orch_lambda(event, context):
             response = lambda_client.invoke(
                 FunctionName=sql_docket_function,
                 InvocationType='RequestResponse',
-                Payload=json.dumps(s3dict)
+                Payload=json.dumps(s3dict).encode('utf-8')
             )
             return {
                 'statusCode': 200,
@@ -79,16 +94,16 @@ def orch_lambda(event, context):
             response = lambda_client.invoke(
                 FunctionName=sql_document_function,
                 InvocationType='RequestResponse',
-                Payload=json.dumps(s3dict) 
+                Payload=json.dumps(s3dict)
             )
             return {
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
-        elif '.json' not in s3dict['file_key'] and 'comment' in s3dict['file_key']:
+        elif '.json' in s3dict['file_key'] and 'comments' in s3dict['file_key']:
             print("comment json found!")
             response = lambda_client.invoke(
-                FunctionName=open_search_function,
+                FunctionName=opensearch_function,
                 InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
