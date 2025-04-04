@@ -91,7 +91,7 @@ Resources:
               - !GetAtt SQLDocketIngestFunction.Arn
               - !GetAtt SQLDocumentIngestFunction.Arn
               - !GetAtt OpenSearchCommentFunction.Arn
-          
+              - !GetAtt PDFTextExtractFunction.Arn
       Events:
         S3PutEvent:
           Type: S3
@@ -103,6 +103,7 @@ Resources:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
           SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
           OPENSEARCH_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
+          PDF_TEXT_EXTRACT_FUNCTION: !Ref PDFTextExtractFunction
   
   OrchestratorLambdaSNSPermission:
     Type: AWS::Lambda::Permission
@@ -265,8 +266,6 @@ Resources:
           - subnet-073247252e9c9fa78
           - subnet-0e157bfea98242a74
       Layers:
-        - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
-        - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
         - !Ref CommonLayer
       # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
@@ -285,7 +284,19 @@ Resources:
           # AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
           # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
-
+          
+  PDFTextExtractFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/pdf_text_extract
+      Handler: app.handler
+      Runtime: python3.13
+      Layers:
+        - !Ref CommonLayer
+      Policies:
+       - AmazonS3ReadOnlyAccess
+       - AWSLambdaBasicExecutionRole
+       #- AmazonRDSDataFullAccess #TODO          
 
 
   # I am assuming the congifuration for the OpenSearchCommentFunction is very similar to the SQLDocketIngestFunction.
@@ -327,7 +338,6 @@ Resources:
 
 
 Outputs:
-
   OrchestratorFunctionArn:
     Description: "Orchestrator Lambda Function ARN"
     Value: !GetAtt OrchestratorFunction.Arn
@@ -339,6 +349,10 @@ Outputs:
   SQLDocketIngestFunctionArn:
     Description: "SQL Docket Ingest Lambda Function ARN"
     Value: !GetAtt SQLDocketIngestFunction.Arn
+    
+  PDFTextExtractFunctionArn:
+    Description: "PDF Text Extraction Lambda Function ARN"
+    Value: !GetAtt PDFTextExtractFunction.Arn
 
   OpenSearchCommentFunctionArn:
     Description: "OpenSearch Comment Ingest Lambda Function ARN"
