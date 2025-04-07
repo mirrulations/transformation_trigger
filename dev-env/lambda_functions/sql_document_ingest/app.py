@@ -35,7 +35,7 @@ def handler(event, context):
         if 'docketId' in file_data and file_data['docketId'] is None:
             # Extract docketId from the file path
             file_key = s3dict['file_key']
-            docket_id_from_path = file_key.split('/')[-1].split('_')[2]  # Assuming the docketId is the third part of the file name
+            docket_id_from_path = file_key.split('/')[2]  # Assuming the docketId is the third part of the file name
             file_data['docketId'] = docket_id_from_path
             print(f"docketId was null. Set docketId to: {docket_id_from_path}")
 
