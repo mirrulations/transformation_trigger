@@ -1,11 +1,12 @@
 AI Summary Info
 =============================================
 
-#### Overview Info:
-- 53% of dockets have an abstract summary that exists
-- some dockets have one or more htm files that may or may not have a docket summary
-- the problem with this is that some dockets have no htm files, some have one, and others have many htm files with more than one summary
-- it appears to be much easier to generate a summary for dockets without an existing abstract summary in the .json file
+### Overview Info:
+- 53% of dockets have an abstract summary that exists(60% for 2023 to present)
+- Some dockets may not have meaningful abstract summaries either(they can be a word or 2 simply saying 'closed')
+- some dockets may have more than one htm file
+- the problem with this is that if dockets have more than 1 htm file we will have to figure out how to generate a summary from those multiple htm files leading us towards a potential AI summary.
+- it appears it might be easier to generate a summary for dockets without an existing "meaningful" abstract summary in the .json file or just generate an AI summary for all dockets.
 
 ### If we implement an AI summary feature:
 - AWS Bedrock is useful for several purposes; however, it provides access to existing AI models to use and implement in things like our Lambda functions
