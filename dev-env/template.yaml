@@ -300,7 +300,6 @@ Resources:
       Policies:
         - AmazonS3ReadOnlyAccess  # Allows reading from S3
         - AWSLambdaBasicExecutionRole
-
         - Version: '2012-10-17'  # Add Secrets Manager permissions
           Statement:
             - Effect: Allow
