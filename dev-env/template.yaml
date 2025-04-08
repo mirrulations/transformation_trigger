@@ -213,7 +213,6 @@ Resources:
 
 Outputs:
 
-Outputs:
   OrchestratorFunctionArn:
     Description: "Orchestrator Lambda Function ARN"
     Value: !GetAtt OrchestratorFunction.Arn
@@ -233,4 +232,3 @@ Outputs:
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
     Value: !Ref OrchestratorBucket
-

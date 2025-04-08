@@ -12,6 +12,7 @@ def handler(event, context):
         context: Lambda context object
     """
     print(f"Received event: {json.dumps(event)}")
+    
     try:
         # Handle direct Lambda invocations
         s3dict = event
