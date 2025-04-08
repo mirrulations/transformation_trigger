@@ -5,6 +5,7 @@ import json
 import sys
 import os
 
+#TODO How the hell do i do relative imports with lambda functions?
 print("Current sys.path:")
 print("\n".join(sys.path))
 
