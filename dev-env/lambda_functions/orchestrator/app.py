@@ -92,6 +92,15 @@ def orch_lambda(event, context):
                 InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
+        # process attachments from comments (e.g. pdf, docx)
+        elif '.pdf' in s3dict['file_key'] and 'comments' in s3dict['file_key']:
+            print("pdf attachment found!")
+            response = lambda_client.invoke(
+                FunctionName=pdf_text_extraction_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
+            
         else:
             print("File not processed")
             return {
