@@ -90,7 +90,7 @@ Resources:
           - Effect: Allow
             Action:
               - lambda:InvokeFunction
-            Resource: !GetAtt PDFTextExtractFunction.Arn
+            Resource: !GetAtt PDFTextExtractionFunction.Arn
       Events:
         S3PutEvent:
           Type: S3
@@ -102,7 +102,7 @@ Resources:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
           SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
           OPENSEARCH_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
-          PDF_TEXT_EXTRACT_FUNCTION: !Ref PDFTextExtractFunction
+          PDF_TEXT_EXTRACTION_INGEST_FUNCTION: !Ref PDFTextExtractionFunction
 
   # # Permission to allow S3 to invoke the Lambda
   # OrchestratorFunctionS3Permission:
@@ -274,7 +274,7 @@ Resources:
           # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
 
-  # I am assuming the congifuration for the OpenSearchCommentFunction is very similar to the SQLDocketIngestFunction.
+  # I am assuming the configuration for the OpenSearchCommentFunction is very similar to the SQLDocketIngestFunction.
   OpenSearchCommentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -311,10 +311,10 @@ Resources:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/opensearch/master"  # Name of the secret in Secrets Manager
 
-  PDFTextExtractFunction:
+  PDFTextExtractionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/pdf_text_extract
+      CodeUri: lambda_functions/pdf_text_extraction
       Handler: app.handler
       Runtime: python3.13
       Layers:
@@ -341,9 +341,9 @@ Outputs:
     Description: "OpenSearch Comment Ingest Lambda Function ARN"
     Value: !GetAtt OpenSearchCommentFunction.Arn
 
-  PDFTextExtractFunctionArn:
+  PDFTextExtractionFunctionArn:
     Description: "PDF Text Extraction Lambda Function ARN"
-    Value: !GetAtt PDFTextExtractFunction.Arn
+    Value: !GetAtt PDFTextExtractionFunction.Arn
 
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
