@@ -46,7 +46,31 @@ def handler(event, context):
 
 ## Step 3: Update Orchestrator Lambda Function
 
-This section TBD, the current organization of the orchestrator is not fully finished
+in orch_lambda(), the handler for the orchestrator lambda app.py, make sure to add:
+
+```python
+mynewlambda_function = os.environ.get("MY_NEW_LAMBDA_FUNCTION")
+    if not mynewlambda_function:
+        raise Exception("My new lambda function name is not set in the environment variables")
+```
+
+and then in the try-catch for deciding which lambda to send the file to, add a new elif case to the if-else block:
+
+(this specific example is looking for docket and .json in the file key, you will have to change accordingly)
+
+```python
+if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
+            print("docket json found!")
+            response = lambda_client.invoke(
+                FunctionName=sql_docket_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict).encode('utf-8')
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
+```
 
 ## Step 4: Update template.yaml
 
@@ -77,6 +101,39 @@ Go to dev-env/template.yaml and add a new AWS Lambda resource under Resources (T
           Properties:
             Path: /my-new-lambda
             Method: get
+```
+
+In Addition, you must add the lambda to Output (at the bottom of template.yaml) as such:
+
+```yaml
+Outputs:
+  
+  ...
+
+  MyNewLambdaFunctionArn:
+    Description: "My New Lambda Function ARN"
+    Value: !GetAtt MyNewLambdaFunction.Arn
+```
+
+Also, you must add the Arn to the Orchestrator Function in two places:
+
+```yaml
+OrchestratorFunction:
+    Properties:
+      Policies:
+        - Statement:
+            Resource: 
+              - !GetAtt MyNewLambdaFunction.Arn
+```
+
+and
+
+```yaml
+OrchestratorFunction:
+    Properties:
+      Environment:
+        Variables:
+          MY_NEW_LAMBDA_FUNCTION: !Ref MyNewLambdaFunction
 ```
 
 ## Step 5: Install Dependencies (If Needed)

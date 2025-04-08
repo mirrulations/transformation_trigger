@@ -4,12 +4,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   AWS SAM Template for Multi-Lambda Microservices
 
-# Parameters:
-#   ExistingBucketName:
-#     Type: String
-#     Description: Name of the existing S3 bucket that will trigger the Orchestrator Lambda
-#     Default: "etllambdatest"
-
 Globals:
   Function:
     Timeout: 120
@@ -24,7 +18,6 @@ Parameters:
     Type: CommaDelimitedList
     Description: "Route table IDs for the private subnets"
     Default: "rtb-0c89919b1ec9ba6e1"
-  
 
 Resources:
   # VPC Endpoint for S3
@@ -43,6 +36,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
       VpcId: !Ref VpcId
       VpcEndpointType: Interface
+      PrivateDnsEnabled: true
       SecurityGroupIds:
         - sg-03e2bf8d3930f3c42
       SubnetIds:
@@ -57,9 +51,9 @@ Resources:
   OrchestratorBucket:
     Type: AWS::S3::Bucket
     Properties:
-      # This example uses a generated bucket name. Adjust as needed.
       BucketName: !Sub "orchestrator-bucket-${AWS::AccountId}-${AWS::Region}"
 
+  # A common layer for shared code across lambdas such as secrets manager info
   CommonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -69,27 +63,26 @@ Resources:
       CompatibleRuntimes:
         - python3.13
 
-  # Orchestrator Lambda (Triggered by S3 PutObject)
+  # Orchestrator Lambda (Triggered by SNS notification of S3 PutObject)
   OrchestratorFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-OrchestratorFunction"
       CodeUri: lambda_functions/orchestrator/
       Handler: app.orch_lambda
       Runtime: python3.13
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3ReadPolicy:  # Allows this Lambda to read from S3
-            # BucketName: !Ref OrchestratorBucket #ExistingBucketName
             BucketName: !Sub "orchestrator-bucket-${AWS::AccountId}-${AWS::Region}"
         - Statement:  # Add this to allow invoking other Lambdas
           - Effect: Allow
             Action:
               - lambda:InvokeFunction
-            Resource: !GetAtt SQLDocketIngestFunction.Arn
-          - Effect: Allow
-            Action:
-              - lambda:InvokeFunction
-            Resource: !GetAtt PDFTextExtractFunction.Arn
+            Resource: 
+              - !GetAtt SQLDocketIngestFunction.Arn
+              - !GetAtt SQLDocumentIngestFunction.Arn
+              - !GetAtt OpenSearchCommentFunction.Arn
       Events:
         S3PutEvent:
           Type: S3
@@ -99,100 +92,26 @@ Resources:
       Environment:
         Variables:
           SQL_DOCKET_INGEST_FUNCTION: !Ref SQLDocketIngestFunction
-          PDF_TEXT_EXTRACT_FUNCTION: !Ref PDFTextExtractFunction
+          SQL_DOCUMENT_INGEST_FUNCTION: !Ref SQLDocumentIngestFunction
+          OPENSEARCH_INGEST_FUNCTION: !Ref OpenSearchCommentFunction
   
-  # # Permission to allow S3 to invoke the Lambda
-  # OrchestratorFunctionS3Permission:
-  #   Type: AWS::Lambda::Permission
+  OrchestratorLambdaSNSPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrchestratorFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      # The external SNS topic ARN (from the external account)
+      SourceArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
+
+  # Uncomment this if you want to create an SNS subscription for the Orchestrator Lambda to Mirrulations SNS topic
+  
+  # OrchestratorSNSSubscription:
+  #   Type: AWS::SNS::Subscription
   #   Properties:
-  #     Action: lambda:InvokeFunction
-  #     FunctionName: !Ref OrchestratorFunction
-  #     Principal: s3.amazonaws.com
-  #     SourceAccount: !Ref AWS::AccountId
-  #     SourceArn: !Sub "arn:aws:s3:::${ExistingBucketName}"
-
-  # # Custom resource Lambda to set up S3 notifications
-  # S3NotificationSetupFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     Handler: index.handler
-  #     Runtime: python3.13
-  #     InlineCode: |
-  #       import boto3
-  #       import cfnresponse
-  #       import json
-  #       import logging
-
-  #       logger = logging.getLogger()
-  #       logger.setLevel(logging.INFO)
-
-  #       def handler(event, context):
-  #           logger.info('Received event: %s', json.dumps(event))
-            
-  #           # Extract parameters from the event
-  #           props = event['ResourceProperties']
-  #           bucket_name = props['BucketName']
-  #           lambda_arn = props['LambdaArn']
-            
-  #           response_data = {}
-  #           physical_id = f"{bucket_name}-notification"
-            
-  #           try:
-  #               if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
-  #                   logger.info(f"Configuring notification for bucket {bucket_name} to Lambda {lambda_arn}")
-                    
-  #                   # Create S3 client
-  #                   s3 = boto3.client('s3')
-                    
-  #                   # Configure bucket notification
-  #                   notification_config = {
-  #                       'LambdaFunctionConfigurations': [
-  #                           {
-  #                               'LambdaFunctionArn': lambda_arn,
-  #                               'Events': ['s3:ObjectCreated:*']
-  #                           }
-  #                       ]
-  #                   }
-                    
-  #                   # Apply the notification configuration
-  #                   s3.put_bucket_notification_configuration(
-  #                       Bucket=bucket_name,
-  #                       NotificationConfiguration=notification_config
-  #                   )
-                    
-  #                   response_data['Message'] = f"Successfully configured notification for {bucket_name}"
-  #                   cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
-  #               elif event['RequestType'] == 'Delete':
-  #                   # Remove the notification configuration
-  #                   logger.info(f"Removing notification for bucket {bucket_name}")
-                    
-  #                   s3 = boto3.client('s3')
-  #                   s3.put_bucket_notification_configuration(
-  #                       Bucket=bucket_name,
-  #                       NotificationConfiguration={}
-  #                   )
-                    
-  #                   response_data['Message'] = f"Successfully removed notification for {bucket_name}"
-  #                   cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data, physical_id)
-  #           except Exception as e:
-  #               logger.error('Error: %s', str(e))
-  #               cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, physical_id)
-  #     Policies:
-  #       - Version: '2012-10-17'
-  #         Statement:
-  #           - Effect: Allow
-  #             Action:
-  #               - 's3:PutBucketNotification'
-  #               - 's3:GetBucketNotification'
-  #             Resource: !Sub "arn:aws:s3:::${ExistingBucketName}"
-
-  # # Custom resource to trigger the notification configuration
-  # S3NotificationConfig:
-  #   Type: Custom::S3BucketNotification
-  #   Properties:
-  #     ServiceToken: !GetAtt S3NotificationSetupFunction.Arn
-  #     BucketName: !Ref ExistingBucketName
-  #     LambdaArn: !GetAtt OrchestratorFunction.Arn
+  #     TopicArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
+  #     Protocol: lambda
+  #     Endpoint: !GetAtt OrchestratorFunction.Arn
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocketIngestFunction:
@@ -218,7 +137,6 @@ Resources:
       # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
         - AmazonS3ReadOnlyAccess  # Allows reading from S3
-        
         - AWSLambdaBasicExecutionRole
         - AmazonRDSDataFullAccess  # Allows writing to Aurora
         - Version: '2012-10-17'  # Add Secrets Manager permissions
@@ -229,15 +147,13 @@ Resources:
               Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
       Environment:
         Variables:
-          # Remove or replace these with your DB_SECRET_NAME environment variable
-          # AURORA_CLUSTER_ARN: "arn:aws:rds:us-east-1:123456789012:cluster:my-cluster"
-          # AURORA_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret"
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
 
-  PDFTextExtractFunction:
+  # SQL Docket Ingest Lambda (Triggered by Orchestrator)
+  SQLDocumentIngestFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/pdf_text_extract
+      CodeUri: lambda_functions/sql_document_ingest/
       Handler: app.handler
       Runtime: python3.13
       VpcConfig:
@@ -251,26 +167,70 @@ Resources:
           - subnet-073247252e9c9fa78
           - subnet-0e157bfea98242a74
       Layers:
+        - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
+        - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
         - !Ref CommonLayer
+      # Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
       Policies:
-        - AmazonS3ReadOnlyAccess
+        - AmazonS3ReadOnlyAccess  # Allows reading from S3
         - AWSLambdaBasicExecutionRole
-        #- AmazonRDSDataFullAccess #TODO
+        - AmazonRDSDataFullAccess  # Allows writing to Aurora
+        - Version: '2012-10-17'  # Add Secrets Manager permissions
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+      Environment:
+        Variables:
+          DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+
+  OpenSearchCommentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/open_search/
+
+      Handler: app.handler
+      Runtime: python3.13
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-03e2bf8d3930f3c42
+        SubnetIds:
+          - subnet-0548c79ad1faa1117
+          - subnet-049c40a73343487e5
+          - subnet-0157ddb92a2e1d6ad
+          - subnet-06bae533696203b97
+          - subnet-073247252e9c9fa78
+          - subnet-0e157bfea98242a74
+      Layers:
+        - arn:aws:lambda:us-east-1:936771282063:layer:psycopg-import:1
+        - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
+        - !Ref CommonLayer
+      Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
+      Environment:
+        Variables:
+          DB_SECRET_NAME: "mirrulationsdb/opensearch/master"  # Name of the secret in Secrets Manager
+
+Outputs:
 
 Outputs:
   OrchestratorFunctionArn:
     Description: "Orchestrator Lambda Function ARN"
     Value: !GetAtt OrchestratorFunction.Arn
 
-  PDFTextExtractFunctionArn:
-    Description: "PDF Text Extraction Lambda Function ARN"
-    Value: !GetAtt PDFTextExtractFunction.Arn
-
+  SQLDocumentIngestFunctionArn:
+    Description: "SQL Document Ingest Lambda Function ARN"
+    Value: !GetAtt SQLDocumentIngestFunction.Arn
 
   SQLDocketIngestFunctionArn:
     Description: "SQL Docket Ingest Lambda Function ARN"
     Value: !GetAtt SQLDocketIngestFunction.Arn
 
+  OpenSearchCommentFunctionArn:
+    Description: "OpenSearch Comment Ingest Lambda Function ARN"
+    Value: !GetAtt OpenSearchCommentFunction.Arn
+
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
     Value: !Ref OrchestratorBucket
+

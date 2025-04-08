@@ -6,19 +6,24 @@ def extractS3(event):
     if not event:
         raise ValueError("Event is empty")
 
+    # Check if event is wrapped by SNS
+    record = event['Records'][0]
+    if 'Sns' in record:
+        # Parse the inner SNS message, which is a JSON string
+        message = json.loads(record['Sns']['Message'])
+    else:
+        message = event
+
     try:
-        bucket_name = event['Records'][0]['s3']['bucket']['name']
-        object_key = event['Records'][0]['s3']['object']['key']
+        bucket_name = message['Records'][0]['s3']['bucket']['name']
+        object_key = message['Records'][0]['s3']['object']['key']
     except (KeyError, IndexError) as e:
         raise ValueError(f"Cannot extract S3 information from event: {e}")
 
-    # Construct the s3 dictionary
-    s3dict = {
+    return {
         "bucket": bucket_name,
         "file_key": object_key
     }
-    
-    return s3dict
 
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
@@ -35,6 +40,12 @@ def orch_lambda(event, context):
     sql_docket_function = os.environ.get("SQL_DOCKET_INGEST_FUNCTION")
     if not sql_docket_function:
         raise Exception("SQL ingest function name is not set in the environment variables")
+    sql_document_function = os.environ.get("SQL_DOCUMENT_INGEST_FUNCTION")
+    if not sql_document_function:
+        raise Exception("SQL ingest function name is not set in the environment variables")
+    opensearch_function = os.environ.get("OPENSEARCH_INGEST_FUNCTION")
+    if not opensearch_function:
+        raise Exception("OpenSearch ingest function name is not set in the environment variables")
     
     pdf_extract_function = os.environ.get("PDF_TEXT_EXTRACT_FUNCTION")
     if not pdf_extract_function:
@@ -45,28 +56,36 @@ def orch_lambda(event, context):
         s3dict = extractS3(event)
         print(s3dict)
 
-        if '.pdf' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
-            print('docket pdf found')
-            response = lambda_client.invoke(
-                FunctionName=pdf_extract_function,
-                InvocationType='RequestResponse',
-                Payload=json.dumps(s3dict)
-            )
-            return {
-                'statusCode': 200,
-                'body': json.dumps('Lambda function invoked successfully')
-            }
-        elif '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
+        if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
             print("docket json found!")
             response = lambda_client.invoke(
                 FunctionName=sql_docket_function,
                 InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict).encode('utf-8')
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
+            
+        elif '.json' in s3dict['file_key'] and 'document' in s3dict['file_key']:
+            print("document json found!")
+            response = lambda_client.invoke(
+                FunctionName=sql_document_function,
+                InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
             return {
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
+        elif '.json' in s3dict['file_key'] and 'comments' in s3dict['file_key']:
+            print("comment json found!")
+            response = lambda_client.invoke(
+                FunctionName=opensearch_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
         else:
             print('File not processed')
             return {

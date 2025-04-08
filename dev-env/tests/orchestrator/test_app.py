@@ -16,7 +16,9 @@ def aws_credentials():
         'AWS_SECRET_ACCESS_KEY': 'testing',
         'AWS_SECURITY_TOKEN': 'testing',
         'AWS_SESSION_TOKEN': 'testing',
-        'AWS_DEFAULT_REGION': 'us-east-1'
+        'AWS_DEFAULT_REGION': 'us-east-1',
+        'SQL_DOCKET_INGEST_FUNCTION': 'SQLDocketIngestFunction',
+        'SQL_DOCUMENT_INGEST_FUNCTION': 'SQLDocumentIngestFunction'
     }):
         yield
 
@@ -39,7 +41,10 @@ def test_extractS3_valid_event():
     }
     
     result = extractS3(event)
-    assert result == 's3://test-bucket/path/to/docket_file.json'
+    assert result == {
+        "bucket": "test-bucket",
+        "file_key": "path/to/docket_file.json"
+    }
 
 def test_extractS3_empty_event():
     """Test extractS3 with an empty event"""
@@ -85,7 +90,7 @@ def test_orch_lambda_docket_json(aws_credentials):
     }
     
     # Mock the lambda client invoke method
-    with patch('boto3.client') as mock_boto:
+    with patch('lambda_functions.orchestrator.app.boto3.client') as mock_boto:
         mock_lambda = mock_boto.return_value
         mock_lambda.invoke.return_value = {'StatusCode': 200}
         
@@ -94,10 +99,14 @@ def test_orch_lambda_docket_json(aws_credentials):
         
         # Verify lambda was called correctly
         mock_boto.assert_called_once_with('lambda')
+        expected_payload = json.dumps({
+                "bucket": "test-bucket",
+                "file_key": "path/to/docket_file.json"
+        }).encode("utf-8")
         mock_lambda.invoke.assert_called_once_with(
             FunctionName='SQLDocketIngestFunction',
             InvocationType='RequestResponse',
-            Payload=json.dumps({"file_path": 's3://test-bucket/path/to/docket_file.json'}).encode("utf-8")
+            Payload=expected_payload
         )
         
     # Verify the result
@@ -137,9 +146,9 @@ def test_orch_lambda_non_docket_file(aws_credentials):
     
     # Verify the result
     assert result['statusCode'] == 200
-    assert 'File not processed - not a docket JSON file' in result['body']
+    assert 'File not processed' in result['body']
 
-def test_orch_lambda_invalid_event():
+def test_orch_lambda_invalid_event(aws_credentials):
     """Test orch_lambda with an invalid event"""
     # Call the function with an empty event
     result = orch_lambda({}, {})
@@ -148,7 +157,7 @@ def test_orch_lambda_invalid_event():
     assert result['statusCode'] == 400
     assert 'Error processing request' in result['body']
 
-def test_orch_lambda_exception():
+def test_orch_lambda_exception(aws_credentials):
     """Test orch_lambda with an exception being raised"""
     # Create a sample S3 event
     event = {
