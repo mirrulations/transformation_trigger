@@ -67,18 +67,18 @@ def test_handler_with_docket_file(mock_s3_bucket, sample_docket_json):
     # Upload a sample docket file to the S3 bucket
     mock_s3_bucket.put_object(
         Bucket='test-bucket',
-        Key='docket_TEST-2023-0001.json',
+        Key='raw-data/docket_TEST-2023-0001.json',
         Body=sample_docket_json
     )
     
     # Mock event data
     event = {
         'bucket': 'test-bucket',
-        'file_key': 'docket_TEST-2023-0001.json'
+        'file_key': 'raw-data/docket_TEST-2023-0001.json'
     }
     
     # Mock the ingest_docket function
-    with patch('common.ingest.ingest_docket') as mock_ingest:
+    with patch('lambda_functions.sql_docket_ingest.app.ingest_docket') as mock_ingest:
         # Execute the handler
         response = handler(event, {})
         
@@ -105,7 +105,7 @@ def test_handler_with_non_docket_file(mock_s3_bucket):
     }
     
     # Mock the ingest functions
-    with patch('common.ingest.ingest_docket') as mock_ingest:
+    with patch('lambda_functions.sql_docket_ingest.app.ingest_docket') as mock_ingest:
         # Execute the handler
         response = handler(event, {})
         
@@ -131,7 +131,7 @@ def test_handler_with_empty_file(mock_s3_bucket):
     }
     
     # Execute the handler and expect an error
-    with patch('common.ingest.ingest_docket') as mock_ingest:
+    with patch('lambda_functions.sql_docket_ingest.app.ingest_docket') as mock_ingest:
         response = handler(event, {})
         
         # Check error response
@@ -154,7 +154,7 @@ def test_handler_with_invalid_bucket(aws_credentials):
         }
         
         # Execute the handler and expect an error
-        with patch('common.ingest.ingest_docket') as mock_ingest:
+        with patch('lambda_functions.sql_docket_ingest.app.ingest_docket') as mock_ingest:
             response = handler(event, {})
             
             # Check error response
