@@ -18,7 +18,9 @@ def aws_credentials():
         'AWS_SESSION_TOKEN': 'testing',
         'AWS_DEFAULT_REGION': 'us-east-1',
         'SQL_DOCKET_INGEST_FUNCTION': 'SQLDocketIngestFunction',
-        'SQL_DOCUMENT_INGEST_FUNCTION': 'SQLDocumentIngestFunction'
+        'SQL_DOCUMENT_INGEST_FUNCTION': 'SQLDocumentIngestFunction',
+        'OPENSEARCH_INGEST_FUNCTION': 'OpenSearchIngestFunction',
+        'HTM_SUMMARY_INGEST_FUNCTION': 'HTMSummaryIngestFunction',
     }):
         yield
 
@@ -33,7 +35,7 @@ def test_extractS3_valid_event():
                         'name': 'test-bucket'
                     },
                     'object': {
-                        'key': 'path/to/docket_file.json'
+                        'key': 'raw-data/path/to/docket_file.json'
                     }
                 }
             }
@@ -43,7 +45,7 @@ def test_extractS3_valid_event():
     result = extractS3(event)
     assert result == {
         "bucket": "test-bucket",
-        "file_key": "path/to/docket_file.json"
+        "file_key": "raw-data/path/to/docket_file.json"
     }
 
 def test_extractS3_empty_event():
@@ -69,7 +71,7 @@ def test_orch_lambda_docket_json(aws_credentials):
     s3.create_bucket(Bucket='test-bucket')
     s3.put_object(
         Bucket='test-bucket',
-        Key='path/to/docket_file.json',
+        Key='raw-data/path/to/docket_file.json',
         Body='{"test": "data"}'
     )
     
@@ -82,7 +84,7 @@ def test_orch_lambda_docket_json(aws_credentials):
                         'name': 'test-bucket'
                     },
                     'object': {
-                        'key': 'path/to/docket_file.json'
+                        'key': 'raw-data/path/to/docket_file.json'
                     }
                 }
             }
@@ -101,7 +103,7 @@ def test_orch_lambda_docket_json(aws_credentials):
         mock_boto.assert_called_once_with('lambda')
         expected_payload = json.dumps({
                 "bucket": "test-bucket",
-                "file_key": "path/to/docket_file.json"
+                "file_key": "raw-data/path/to/docket_file.json"
         }).encode("utf-8")
         mock_lambda.invoke.assert_called_once_with(
             FunctionName='SQLDocketIngestFunction',
@@ -121,7 +123,7 @@ def test_orch_lambda_non_docket_file(aws_credentials):
     s3.create_bucket(Bucket='test-bucket')
     s3.put_object(
         Bucket='test-bucket',
-        Key='path/to/regular_file.json',
+        Key='raw-data/path/to/regular_file.json',
         Body='{"test": "data"}'
     )
     
@@ -134,7 +136,7 @@ def test_orch_lambda_non_docket_file(aws_credentials):
                         'name': 'test-bucket'
                     },
                     'object': {
-                        'key': 'path/to/regular_file.json'
+                        'key': 'raw-data/path/to/regular_file.json'
                     }
                 }
             }
@@ -145,7 +147,7 @@ def test_orch_lambda_non_docket_file(aws_credentials):
     result = orch_lambda(event, {})
     
     # Verify the result
-    assert result['statusCode'] == 200
+    assert result['statusCode'] == 404
     assert 'File not processed' in result['body']
 
 def test_orch_lambda_invalid_event(aws_credentials):
@@ -168,7 +170,7 @@ def test_orch_lambda_exception(aws_credentials):
                         'name': 'test-bucket'
                     },
                     'object': {
-                        'key': 'path/to/docket_file.json'
+                        'key': 'raw-data/path/to/docket_file.json'
                     }
                 }
             }
