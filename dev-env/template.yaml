@@ -232,4 +232,3 @@ Outputs:
   OrchestratorBucketName:
     Description: "Name of the S3 Bucket created for triggering Orchestrator"
     Value: !Ref OrchestratorBucket
-

@@ -20,6 +20,8 @@ We initially developed our local infracture on local deployments of the AWS Serv
 
 - Clone this repository
 - `cd` into dev-env
+- Clone the ingest functions by running `git submodule update --init`
+    * Make sure to occasionally rerun `git submodule update` whenever there are changes to the ingest repository!
 - Run `sam build --use-container` to download the ECR image for python
 - Run `sam local invoke HelloWorldFunction --event events/event.json`
 - Run `sam local start-api` to initialize the container and visit the link that the program prints out (for example: localhost:3000/hello)
