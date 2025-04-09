@@ -28,8 +28,7 @@ jobs:
         # If you have a requirements.txt file:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         # Install dev dependencies if you have them:
-        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-        
+        if [ -f dev-env/requirements-dev.txt ]; then pip install -r dev-env/requirements-dev.txt; fi        
     # - name: Install AWS SAM CLI
     #   run: |
     #     pip install aws-sam-cli
