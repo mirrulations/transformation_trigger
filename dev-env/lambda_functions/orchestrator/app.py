@@ -46,6 +46,10 @@ def orch_lambda(event, context):
     opensearch_function = os.environ.get("OPENSEARCH_INGEST_FUNCTION")
     if not opensearch_function:
         raise Exception("OpenSearch ingest function name is not set in the environment variables")
+    htm_summary_function = os.environ.get("HTM_SUMMARY_INGEST_FUNCTION")
+    if not htm_summary_function:
+        raise Exception("HTM summary function name is not set in the environment variables")
+
     
 
     try:
@@ -62,7 +66,8 @@ def orch_lambda(event, context):
                 'body': json.dumps("File not processed - not in raw-data folder")
             }
 
-        if '.json' in s3dict['file_key'] and 'docket' in s3dict['file_key']:
+        if  s3dict['file_key'].endswith('.json') and 'docket' in s3dict['file_key']:
+
             print("docket json found!")
             response = lambda_client.invoke(
                 FunctionName=sql_docket_function,
@@ -74,7 +79,8 @@ def orch_lambda(event, context):
                 'body': json.dumps('Lambda function invoked successfully')
             }
             
-        elif '.json' in s3dict['file_key'] and 'document' in s3dict['file_key']:
+        elif s3dict['file_key'].endswith('.json') and 'document' in s3dict['file_key']:
+
             print("document json found!")
             response = lambda_client.invoke(
                 FunctionName=sql_document_function,
@@ -85,19 +91,39 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
-        elif '.json' in s3dict['file_key'] and 'comments' in s3dict['file_key']:
+          
+        elif s3dict['file_key'].endswith('.json') and 'comments' in s3dict['file_key']:
+
             print("comment json found!")
             response = lambda_client.invoke(
                 FunctionName=opensearch_function,
                 InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
+
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
+        elif s3dict['file_key'].endswith('.htm'):
+            print("htm file found!")
+            response = lambda_client.invoke(
+                FunctionName=htm_summary_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
+            
         else:
             print("File not processed")
             return {
-                'statusCode': 200,
-                'body': json.dumps('File not processed - not a docket JSON or document JSON file')
+                'statusCode': 404,
+                'body': json.dumps('File not processed')
             }
+
     except ValueError as e:
         return {
             'statusCode': 400,
