@@ -2,7 +2,7 @@ import json
 import boto3
 from bs4 import BeautifulSoup
 import re
-# from common.ingest import ingest_htm_summary
+from common.ingest import ingest_summary
 
 def handler(event, context):
     """
@@ -38,7 +38,9 @@ def handler(event, context):
         # Extract the docket-id from the file key
         file_key_parts = file_key.split('/')
         if len(file_key_parts) > 1:
-            docket_id = file_key_parts[1]
+            docket_id = file_key_parts[2]
+            print(f"Extracted docket_id: {docket_id}")
+            
         else:
             raise ValueError("Invalid file key format. Unable to extract docket-id.")
 
@@ -81,7 +83,7 @@ def handler(event, context):
 
             # Pass the dictionary to the ingest_htm_summary function (when implemented)
             print("Ingesting summary...")
-            # ingest_htm_summary(data)
+            ingest_summary(data)
             print("Summary ingestion completed.")
 
         else:

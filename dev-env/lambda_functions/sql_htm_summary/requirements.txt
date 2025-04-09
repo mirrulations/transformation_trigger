@@ -2,4 +2,3 @@ boto3
 psycopg[binary]
 logger
 bs4
-re
