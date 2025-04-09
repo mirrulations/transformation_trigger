@@ -1,5 +1,5 @@
 # requirements-dev.txt
-bs4
+
 # Testing framework
 pytest
 
@@ -12,6 +12,8 @@ pytest-mock
 # Code linting/formatting tools (optional)
 flake8
 # black
+
+bs4
 
 # SAM CLI for local testing (optional)
 # aws-sam-cli
