@@ -13,7 +13,5 @@ pytest-mock
 flake8
 # black
 
-bs4
-
 # SAM CLI for local testing (optional)
 # aws-sam-cli
