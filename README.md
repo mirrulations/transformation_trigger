@@ -1,17 +1,24 @@
 # transformation_trigger
+
 A repo for the mirrulations trigger to transform data
 
-s3-test1 bucket link: https://us-east-1.console.aws.amazon.com/s3/buckets/mirrulations-test1
+This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
-s3-revised bucket link: https://us-east-1.console.aws.amazon.com/s3/buckets/mirrulations-revised-form
+- lambda_functions - Code for the application's Lambda functions.
+- common_layer - a submodule that contains functions to get secrets and connect to databases for the lambdas.
+- events - Invocation events that you can use to invoke the functions.
+- tests - Unit tests for the application code.
+- template.yaml - A template that defines the application's AWS resources.
 
-We initially developed our local infracture on local deployments of the AWS Server Application Model (SAM). We based the initial example of the of the provided 'Hello World' example from the SAM quick templates.
+The application uses several AWS resources, including Lambda functions, SNS trigger, S3, and secrets manager. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
-### Additional Documentation
+## Additional Documentation
+
 [Lambda Trigger Creation Guide](docs/lambda_trigger_documentation.md)\
 [Moto Lambda Mocking Guide](docs/lambdamocking.md)\
 [Moto S3 Mocking Guide](docs/s3mocking.md)\
-[Flake8 Installation & Setup Guide](docs/static_analysis.md)
+[Flake8 Installation & Setup Guide](docs/static_analysis.md)\
+[Local Dev / Execution Guide](docs/running_locally.md)
 
 ## Get Started
 
@@ -21,9 +28,10 @@ We initially developed our local infracture on local deployments of the AWS Serv
 - Clone this repository
 - `cd` into dev-env
 - Clone the ingest functions by running `git submodule update --init`
-    * Make sure to occasionally rerun `git submodule update` whenever there are changes to the ingest repository!
-- Run `sam build --use-container` to download the ECR image for python
-- Run `sam local invoke HelloWorldFunction --event events/event.json`
-- Run `sam local start-api` to initialize the container and visit the link that the program prints out (for example: localhost:3000/hello)
+  - Make sure to occasionally rerun `git submodule update` whenever there are changes to the ingest repository!
 
-![Screenshot of the terminal showing the endpoint URL for the function](assets/term.png)
+Refer to the [running locally](docs/running_locally.md) documentation to build and run the stack in your local environment
+
+## Resources
+
+See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
