@@ -1,4 +1,6 @@
 # requirements-dev.txt
+bs4
+boto3
 
 # Testing framework
 pytest
