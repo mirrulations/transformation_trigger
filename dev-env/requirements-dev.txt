@@ -18,3 +18,4 @@ flake8
 # aws-sam-cli
 pypdf
 
+reportlab
