@@ -49,6 +49,7 @@ def orch_lambda(event, context):
     htm_summary_function = os.environ.get("HTM_SUMMARY_INGEST_FUNCTION")
     if not htm_summary_function:
         raise Exception("HTM summary function name is not set in the environment variables")
+
     
 
     try:
@@ -66,6 +67,7 @@ def orch_lambda(event, context):
             }
 
         if  s3dict['file_key'].endswith('.json') and 'docket' in s3dict['file_key']:
+
             print("docket json found!")
             response = lambda_client.invoke(
                 FunctionName=sql_docket_function,
@@ -78,6 +80,7 @@ def orch_lambda(event, context):
             }
             
         elif s3dict['file_key'].endswith('.json') and 'document' in s3dict['file_key']:
+
             print("document json found!")
             response = lambda_client.invoke(
                 FunctionName=sql_document_function,
@@ -88,13 +91,16 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
+          
         elif s3dict['file_key'].endswith('.json') and 'comments' in s3dict['file_key']:
+
             print("comment json found!")
             response = lambda_client.invoke(
                 FunctionName=opensearch_function,
                 InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
+
             return {
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
@@ -117,6 +123,7 @@ def orch_lambda(event, context):
                 'statusCode': 404,
                 'body': json.dumps('File not processed')
             }
+
     except ValueError as e:
         return {
             'statusCode': 400,
