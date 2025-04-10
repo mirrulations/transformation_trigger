@@ -16,3 +16,8 @@ flake8
 
 # SAM CLI for local testing (optional)
 # aws-sam-cli
+pypdf
+
+reportlab
+
+dotenv
