@@ -13,7 +13,10 @@ def extract_text(file_stream):
         reader = Re(file_stream)
     except Exception as e:
         print(f"Error reading PDF file: {e}")
-        return None
+        return {
+            'statusCode': 422,
+            'body': json.dumps({'error': str(e)})
+        } 
     extracted_text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
     return extracted_text
 
@@ -40,8 +43,8 @@ def handler(event, context):
         # Extract docketId, commentId, and attachmentId based on file structure
         docketId = parts[2]  # Assuming docketId is always in this position (e.g. "APHIS-2022-0055")
         filename = parts[-1]  # Get the filename
-        commentId = filename.split('_')[0]  # Extract commentId (e.g. "0002" from "APHIS-2022-0055-0002_attachment_1.pdf")
-        attachmentId = commentId + "-" + filename.split('_')[-1].replace('.pdf', '')  # Extract attachmentId (e.g. "1" from "APHIS-2022-0055-0002_attachment_1.pdf")
+        commentId = filename.split('_')[0]  # Extract commentId (e.g. "APHIS-2022-0055-0002" from "APHIS-2022-0055-0002_attachment_1.pdf")
+        attachmentId = commentId + "-" + filename.split('_')[-1].replace('.pdf', '')  # Extract attachmentId (e.g. "APHIS-2022-0055-0002-1" from "APHIS-2022-0055-0002_attachment_1.pdf")
 
         # Construct the dictionary with the extracted text and other necessary data
         data = {
