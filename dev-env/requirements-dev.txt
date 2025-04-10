@@ -21,3 +21,5 @@ pypdf
 reportlab
 
 dotenv
+
+opensearchpy
