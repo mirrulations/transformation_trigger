@@ -19,7 +19,8 @@ def aws_credentials():
         'AWS_DEFAULT_REGION': 'us-east-1',
         'SQL_DOCKET_INGEST_FUNCTION': 'SQLDocketIngestFunction',
         'SQL_DOCUMENT_INGEST_FUNCTION': 'SQLDocumentIngestFunction',
-        'OPENSEARCH_INGEST_FUNCTION': 'OpenSearchIngestFunction',
+        'OPENSEARCH_COMMENT_INGEST_FUNCTION': 'OpenSearchCommentIngestFunction',
+        'OPENSEARCH_TEXT_EXTRACT_FUNCTION': 'OpenSearchTextExtractFunction',
         'HTM_SUMMARY_INGEST_FUNCTION': 'HTMSummaryIngestFunction',
     }):
         yield
