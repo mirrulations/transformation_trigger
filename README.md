@@ -28,7 +28,7 @@ The application uses several AWS resources, including Lambda functions, SNS trig
 
 - Clone this repository
 - `cd` into dev-env
-- Clone the ingest functions by running `git submodule update --init`
+- Clone the common layer ingest functions by running `git submodule update --init`
   - Make sure to occasionally rerun `git submodule update` whenever there are changes to the ingest repository!
 
 Refer to the [running locally](docs/running_locally.md) documentation to build and run the stack in your local environment
