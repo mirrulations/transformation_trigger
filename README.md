@@ -18,7 +18,8 @@ The application uses several AWS resources, including Lambda functions, SNS trig
 [Moto Lambda Mocking Guide](docs/lambdamocking.md)\
 [Moto S3 Mocking Guide](docs/s3mocking.md)\
 [Flake8 Installation & Setup Guide](docs/static_analysis.md)\
-[Local Dev / Execution Guide](docs/running_locally.md)
+[Local Dev / Execution Guide](docs/running_locally.md)\
+[Adding New Lambda Functions Guide](docs/adding_new_lambdas.md)
 
 ## Get Started
 
