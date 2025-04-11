@@ -17,7 +17,7 @@ def extract_text(file_stream):
             'statusCode': 422,
             'body': json.dumps({'error': str(e)})
         } 
-    extracted_text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+    extracted_text = " ".join([page.extract_text().replace("\n", " ") for page in reader.pages if page.extract_text()])
     return extracted_text
 
 def handler(event, context):
