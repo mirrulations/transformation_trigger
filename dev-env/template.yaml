@@ -110,12 +110,12 @@ Resources:
 
   # Uncomment this if you want to create an SNS subscription for the Orchestrator Lambda to Mirrulations SNS topic
   
-  # OrchestratorSNSSubscription:
-  #   Type: AWS::SNS::Subscription
-  #   Properties:
-  #     TopicArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
-  #     Protocol: lambda
-  #     Endpoint: !GetAtt OrchestratorFunction.Arn
+  OrchestratorSNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: arn:aws:sns:us-east-1:533267155325:mirrulations-object_created
+      Protocol: lambda
+      Endpoint: !GetAtt OrchestratorFunction.Arn
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocketIngestFunction:
