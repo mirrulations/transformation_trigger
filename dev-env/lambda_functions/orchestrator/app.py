@@ -46,6 +46,9 @@ def orch_lambda(event, context):
     opensearch_function = os.environ.get("OPENSEARCH_COMMENT_INGEST_FUNCTION")
     if not opensearch_function:
         raise Exception("OpenSearch ingest function name is not set in the environment variables")
+    sql_comment_function = os.environ.get("SQL_COMMENT_INGEST_FUNCTION")
+    if not sql_comment_function:
+        raise Exception("SQL comment ingest function name is not set in the environment variables")
     htm_summary_function = os.environ.get("HTM_SUMMARY_INGEST_FUNCTION")
     if not htm_summary_function:
         raise Exception("HTM summary function name is not set in the environment variables")
@@ -110,6 +113,12 @@ def orch_lambda(event, context):
             print("comment json found!")
             response = lambda_client.invoke(
                 FunctionName=opensearch_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
+
+            response = lambda_client.invoke(
+                FunctionName=sql_comment_function,
                 InvocationType='RequestResponse',
                 Payload=json.dumps(s3dict)
             )
