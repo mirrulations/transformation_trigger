@@ -4,9 +4,8 @@ from common.ingest import ingest_docket
 
 def handler(event, context):
     """
-    Lambda handler that processes data from another Lambda invocation
-    and stores it in a PostgreSQL database.
-    
+    Lambda handler that processes a docket.json file when an s3 event contains a docket.json and is passed to the mirrulations bucket. This function is invoked by the orchestrator function and is responsible for ingesting the docket.json contents into SQL database.
+
     Args:
         event (dict): Contains the payload from the invoking Lambda
         context: Lambda context object
