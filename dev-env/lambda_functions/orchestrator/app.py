@@ -2,7 +2,13 @@ import boto3
 import json
 import os
 
+
 def extractS3(event):
+    """
+    extractS3 function to extract S3 bucket name and object key from the event.
+    It handles both direct S3 events and wrapped SNS events.
+    It raises a ValueError if the event is empty or if the S3 information cannot be extracted.
+    """
     if not event:
         raise ValueError("Event is empty")
 
@@ -34,6 +40,11 @@ def get_lambda_client():
 
 
 def orch_lambda(event, context):
+    """
+    The def orch_lambda function is the main entry point for the Lambda function.
+    def orch_lambda(event, context) processes incoming S3 events, extracts the relevant information, and invokes other Lambda functions based on the file type. The lambda function is designed to handle various file types, and is very easily extensible to add more file types in the future. 
+    """
+    
     lambda_client = get_lambda_client()
 
     # Retrieve the SQL ingest function's name (or ARN) from the environment

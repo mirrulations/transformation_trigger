@@ -5,8 +5,7 @@ from common.ingest import ingest_comment
 
 def handler(event, context):
    """
-   Lambda handler that processes data from another Lambda invocation
-   and indexes it in OpenSearch.
+   Lambda handler that processes a comment.json file when an s3 event contains a comment.json and is passed to the mirrulations bucket. This function is invoked by the orchestrator function and is responsible for ingesting the comment.json file into OpenSearch database.  
    
    Args:
        event (dict): Contains the payload from the invoking Lambda
