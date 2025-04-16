@@ -237,11 +237,6 @@ Resources:
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
-          POSTGRES_PORT: null
-          POSTGRES_DB: null
-          POSTGRES_PASSWORD: null
-          POSTGRES_HOST: null
-          POSTGRES_USER: null
 
 # SQL HTM Summary Ingest Lambda (Triggered by Orchestrator)
   HTMSummaryIngestFunction:
