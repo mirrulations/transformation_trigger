@@ -152,6 +152,11 @@ Resources:
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+          POSTGRES_PORT: null
+          POSTGRES_DB: null
+          POSTGRES_PASSWORD: null
+          POSTGRES_HOST: null
+          POSTGRES_USER: null
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocumentIngestFunction:
@@ -188,6 +193,11 @@ Resources:
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+          POSTGRES_PORT: null
+          POSTGRES_DB: null
+          POSTGRES_PASSWORD: null
+          POSTGRES_HOST: null
+          POSTGRES_USER: null
 
 # SQL HTM Summary Ingest Lambda (Triggered by Orchestrator)
   HTMSummaryIngestFunction:
@@ -223,6 +233,11 @@ Resources:
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+          POSTGRES_PORT: null
+          POSTGRES_DB: null
+          POSTGRES_PASSWORD: null
+          POSTGRES_HOST: null
+          POSTGRES_USER: null
 
   OpenSearchCommentFunction:
     Type: AWS::Serverless::Function
@@ -249,6 +264,9 @@ Resources:
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/opensearch/master"  # Name of the secret in Secrets Manager
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: null
+          OPENSEARCH_HOST: null
+          OPENSEARCH_PORT: null
 
   OpenSearchTextExtractFunction:
     Type: AWS::Serverless::Function
@@ -283,6 +301,9 @@ Resources:
         Variables:
           # OUTPUT_BUCKET_NAME: !Ref OrchestratorBucket
           DB_SECRET_NAME: "mirrulationsdb/opensearch/master"
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: null
+          OPENSEARCH_HOST: null
+          OPENSEARCH_PORT: null
 
 Outputs:
 
