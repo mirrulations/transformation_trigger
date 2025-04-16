@@ -48,7 +48,7 @@ def orch_lambda(event, context):
         raise Exception("OpenSearch ingest function name is not set in the environment variables")
     sql_comment_function = os.environ.get("SQL_COMMENT_INGEST_FUNCTION")
     if not sql_comment_function:
-        raise Exception("SQL ingest function name is not set in the environment variables")
+        raise Exception("SQL comment ingest function name is not set in the environment variables")
     htm_summary_function = os.environ.get("HTM_SUMMARY_INGEST_FUNCTION")
     if not htm_summary_function:
         raise Exception("HTM summary function name is not set in the environment variables")
