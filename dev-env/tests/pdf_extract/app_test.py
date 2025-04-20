@@ -14,7 +14,7 @@ sys.modules['common.ingest'] = MagicMock()
 sys.modules['common.ingest'].ingest_extracted_text = MagicMock()
 sys.modules['psycopg'] = MagicMock()
 
-from lambda_functions.pdf_text_extract.app import handler, extract_text  # Import from app.py
+from lambda_functions.pdf_text_extract.app import handler, extract_text, s3_saver  # Import from app.py
 
 # Fixture to mock AWS credentials
 @pytest.fixture(scope="function")

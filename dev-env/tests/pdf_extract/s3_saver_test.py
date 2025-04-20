@@ -37,10 +37,10 @@ def test_s3_saver_saves_file_correctly(s3_mock):
     # Sample content to save
     content = "This is a test file."
     file_stream = BytesIO(content.encode("utf-8"))
-    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted.txt"
+    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/extracted_txt/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted.txt"
 
     # Call the s3_saver function
-    s3_saver(file_stream, "test-bucket", key)
+    s3_saver(file_stream, "test-bucket", key, s3=s3_mock)
 
     # Retrieve the saved file from mock S3 and verify its contents
     response = s3_mock.get_object(Bucket="test-bucket", Key=key)
@@ -51,10 +51,10 @@ def test_s3_saver_with_binary_content(s3_mock):
     # Binary content to save (simulating image or PDF)
     content = b"binarydatahere"
     file_stream = BytesIO(content)
-    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted.pdf"
+    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/extracted_txt/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted.pdf"
 
     # Call the s3_saver function
-    s3_saver(file_stream, "test-bucket", key)
+    s3_saver(file_stream, "test-bucket", key, s3=s3_mock)
 
     # Retrieve the saved file and verify its contents
     response = s3_mock.get_object(Bucket="test-bucket", Key=key)
@@ -65,10 +65,10 @@ def test_s3_saver_with_large_content(s3_mock):
     # Large content to save
     content = "A" * 10**6  # 1MB of "A"s
     file_stream = BytesIO(content.encode("utf-8"))
-    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted_large.txt"
+    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/extracted_txt/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted_large.txt"
 
     # Call the s3_saver function
-    s3_saver(file_stream, "test-bucket", key)
+    s3_saver(file_stream, "test-bucket", key, s3=s3_mock)
 
     # Retrieve the saved file and verify its contents
     response = s3_mock.get_object(Bucket="test-bucket", Key=key)
@@ -79,10 +79,10 @@ def test_s3_saver_with_empty_file(s3_mock):
     # Empty file content
     content = ""
     file_stream = BytesIO(content.encode("utf-8"))
-    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted_empty.txt"
+    key = "derived-data/APHIS/APHIS-2004-0001/mirrulations/extracted_txt/comments_extracted_text/pypdf/APHIS-2004-0001-0005_attachment_1_extracted_empty.txt"
 
     # Call the s3_saver function
-    s3_saver(file_stream, "test-bucket", key)
+    s3_saver(file_stream, "test-bucket", key, s3=s3_mock)
 
     # Retrieve the saved file and verify its contents
     response = s3_mock.get_object(Bucket="test-bucket", Key=key)

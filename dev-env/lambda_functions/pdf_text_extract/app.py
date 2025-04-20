@@ -4,7 +4,6 @@ import io
 from pypdf import PdfReader as Re
 from common.ingest import ingest_extracted_text
 
-s3 = boto3.client('s3')
 
 def extract_text(file_stream):
     """Extract text from a PDF file stream and return as a string."""
@@ -20,7 +19,7 @@ def extract_text(file_stream):
     return extracted_text
 
 
-def s3_saver(file_stream, bucket, file_key):
+def s3_saver(file_stream, bucket, file_key, s3):
     """Save the file stream to S3."""
     print("starting s3saver client")
     try:
@@ -41,6 +40,7 @@ def handler(event, context):
 
     try:
         # Retrieve PDF file from S3 using the event data
+        s3 = boto3.client('s3')
         file_obj = s3.get_object(Bucket=event['bucket'], Key=event['file_key'])
         file_content = file_obj['Body'].read()
 
@@ -77,7 +77,7 @@ def handler(event, context):
         if 'comments_attachments' in event['file_key']:
             txt_filename = filename.replace('.pdf', '_extracted.txt')
             txt_key = f"derived-data/{agency}/{docketId}/mirrulations/extracted_txt/comments_extracted_text/pypdf/{txt_filename}"
-            s3_saver(io.BytesIO(extracted_text.encode('utf-8')), bucket, txt_key)
+            s3_saver(io.BytesIO(extracted_text.encode('utf-8')), bucket, txt_key, s3)
             # Ingest the extracted text and the prepared data
             print("Ingesting extracted text...")
             ingest_extracted_text(data)  # Pass the dictionary to the ingest function
