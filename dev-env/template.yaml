@@ -320,7 +320,7 @@ Resources:
         - arn:aws:lambda:us-east-1:936771282063:layer:aoss-imports:2
         - !Ref CommonLayer
       #Note for future people: you cannot have both a role and a policy in the same function, one or the other only
-      Role: arn:aws:iam::936771282063:role/334s25_lambda_execution_opensearch
+      Role: arn:aws:iam::936771282063:role/mirrulations_derived_data_lambda
       # Policies: 
       #   - Version: '2012-10-17'
       #     Statement:

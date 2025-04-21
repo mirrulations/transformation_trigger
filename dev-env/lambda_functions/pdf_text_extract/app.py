@@ -1,10 +1,8 @@
-
 import json
 import boto3
 import io
 from pypdf import PdfReader as Re
 from common.ingest import ingest_extracted_text
-
 
 
 def extract_text(file_stream):
@@ -19,6 +17,22 @@ def extract_text(file_stream):
         } 
     extracted_text = " ".join([page.extract_text().replace("\n", " ") for page in reader.pages if page.extract_text()])
     return extracted_text
+
+
+def s3_saver(file_stream, bucket, file_key, s3):
+    """Save the file stream to S3."""
+    print("starting s3saver client")
+    try:
+        print("Uploading file to S3...")
+        s3.upload_fileobj(file_stream, bucket, file_key)
+        print(f"File saved to S3 bucket {bucket} with key {file_key}")
+    except Exception as e:
+        print(f"Error saving file to S3: {e}")
+        return {
+            'statusCode': 422,
+            'body': json.dumps({'error': str(e)})
+        }
+        
 
 def handler(event, context):
     print("Received PDF file in event.")
@@ -41,6 +55,8 @@ def handler(event, context):
         parts = file_key.split('/')
 
         # Extract docketId, commentId, and attachmentId based on file structure
+        bucket = event['bucket']  # Assuming bucket is always in this position (e.g. "mirrulations")
+        agency = parts[1]  # Assuming agency is always in this position (e.g. "APHIS")
         docketId = parts[2]  # Assuming docketId is always in this position (e.g. "APHIS-2022-0055")
         filename = parts[-1]  # Get the filename
         commentId = filename.split('_')[0]  # Extract commentId (e.g. "APHIS-2022-0055-0002" from "APHIS-2022-0055-0002_attachment_1.pdf")
@@ -59,6 +75,9 @@ def handler(event, context):
 
         # Check if the event is related to comments_attachments
         if 'comments_attachments' in event['file_key']:
+            txt_filename = filename.replace('.pdf', '_extracted.txt')
+            txt_key = f"derived-data/{agency}/{docketId}/mirrulations/extracted_txt/comments_extracted_text/pypdf/{txt_filename}"
+            s3_saver(io.BytesIO(extracted_text.encode('utf-8')), bucket, txt_key, s3)
             # Ingest the extracted text and the prepared data
             print("Ingesting extracted text...")
             ingest_extracted_text(data)  # Pass the dictionary to the ingest function
