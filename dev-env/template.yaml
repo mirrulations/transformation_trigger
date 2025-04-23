@@ -305,6 +305,7 @@ Resources:
       CodeUri: lambda_functions/pdf_text_extract/
       Handler: app.handler
       Runtime: python3.13
+      Timeout: 180
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
