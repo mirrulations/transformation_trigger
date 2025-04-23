@@ -1,6 +1,6 @@
 import json
 import boto3
-from common.ingest import ingest_comment
+from common.ingest import ingest_comment_opensearch
 
 
 def handler(event, context):
@@ -31,7 +31,7 @@ def handler(event, context):
        if 'comments' in s3dict['file_key']:
            #set environment variables and ingest comment
            print("ingesting")
-           ingest_comment(file_content)
+           ingest_comment_opensearch(file_content)
            print("ingest complete!")
        
        return {
