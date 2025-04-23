@@ -35,6 +35,17 @@ def s3_saver(file_stream, bucket, file_key, s3):
         
 
 def handler(event, context):
+    """
+    Lambda handler that processes a PDF file when an s3 event contains a PDF and is passed to the mirrulations bucket. This function is invoked by the orchestrator function and is responsible for extracting text from the PDF file and ingesting it into OpenSearch database.
+    
+    Args:
+        event (_type_): _description_
+        context (_type_): _description_
+        
+    Returns:
+        _type_: _description_
+    """
+    
     print("Received PDF file in event.")
     print(f"Received event: {json.dumps(event)}")
 
