@@ -66,6 +66,9 @@ def orch_lambda(event, context):
     opensearch_text_extract_function = os.environ.get("OPENSEARCH_TEXT_EXTRACT_FUNCTION")
     if not opensearch_text_extract_function:
         raise Exception("OpenSearch text extract function name is not set in the environment variables")
+    sql_fed_docs_function = os.environ.get("SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION")
+    if not sql_fed_docs_function:
+        raise Exception("Federal register ingest function name is not set in the environment variables")
 
     
 
@@ -150,6 +153,17 @@ def orch_lambda(event, context):
                 'body': json.dumps('Lambda function invoked successfully')
             }
             
+        elif s3dict['file_key'].endswith('.json') and 'federal_register' in s3dict['file_key']:
+            print("federal register document json found!")
+            response = lambda_client.invoke(
+                FunctionName=sql_fed_docs_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
         else:
             print("File not processed")
             return {
