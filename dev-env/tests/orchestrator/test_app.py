@@ -23,6 +23,7 @@ def aws_credentials():
         'OPENSEARCH_COMMENT_INGEST_FUNCTION': 'OpenSearchCommentIngestFunction',
         'OPENSEARCH_TEXT_EXTRACT_FUNCTION': 'OpenSearchTextExtractFunction',
         'HTM_SUMMARY_INGEST_FUNCTION': 'HTMSummaryIngestFunction',
+        'SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION': 'SQLFederalDocumentIngestFunction',
     }):
         yield
 
