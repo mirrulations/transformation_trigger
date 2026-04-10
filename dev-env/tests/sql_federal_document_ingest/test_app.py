@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import sys
 
@@ -48,15 +48,14 @@ def test_handler_ingests_cfr_parts_when_present():
         with patch("lambda_functions.sql_federal_document_ingest.app.ingest_federal_document"):
             with patch("lambda_functions.sql_federal_document_ingest.app.ingest_cfr_part") as ingest_cfr:
                 r = fed_app.handler({"frdocnum": "2024-10001"}, None)
-                assert ingest_cfr.call_count == 2
-                ingest_cfr.assert_has_calls([call(40, 52), call(40, 60)])
+                ingest_cfr.assert_called_once_with(DOC_WITH_CFR)
                 assert r["statusCode"] == 200
 
 
-def test_handler_skips_cfr_ingest_when_no_cfr_references():
+def test_handler_ingests_cfr_parts_when_no_cfr_references():
     with patch.object(fed_app, "fetch_document_json", return_value=DOC_NO_CFR):
         with patch("lambda_functions.sql_federal_document_ingest.app.ingest_federal_document"):
             with patch("lambda_functions.sql_federal_document_ingest.app.ingest_cfr_part") as ingest_cfr:
                 r = fed_app.handler({"frdocnum": "2024-10001"}, None)
-                ingest_cfr.assert_not_called()
+                ingest_cfr.assert_called_once_with(DOC_NO_CFR)
                 assert r["statusCode"] == 200

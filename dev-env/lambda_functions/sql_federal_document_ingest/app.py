@@ -40,12 +40,8 @@ def handler(event, context):
         print("Ingesting federal register document...")
         ingest_federal_document(file_content)
 
-        doc_data = json.loads(file_content)
-        cfr_refs = doc_data.get("cfr_references", [])
-        if cfr_refs:
-            print(f"Ingesting {len(cfr_refs)} CFR part reference(s)...")
-            for ref in cfr_refs:
-                ingest_cfr_part(ref["title"], ref["part"])
+        print("Ingesting CFR parts...")
+        ingest_cfr_part(file_content)
 
         print("Ingest complete!")
 
