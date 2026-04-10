@@ -164,10 +164,15 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
-              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !GetAtt SQLFederalDocumentIngestFunction.Arn
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+          SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION: !Ref SQLFederalDocumentIngestFunction
 
   # SQL Docket Ingest Lambda (Triggered by Orchestrator)
   SQLDocumentIngestFunction:
@@ -200,10 +205,15 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
-              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"  
+              Resource: "arn:aws:secretsmanager:us-east-1:936771282063:secret:mirrulationsdb/postgres/master-uA4mKl"
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !GetAtt SQLFederalDocumentIngestFunction.Arn
       Environment:
         Variables:
           DB_SECRET_NAME: "mirrulationsdb/postgres/master"  # Name of your secret in Secrets Manager
+          SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION: !Ref SQLFederalDocumentIngestFunction
 
   SQLFederalDocumentIngestFunction:
     Type: AWS::Serverless::Function
