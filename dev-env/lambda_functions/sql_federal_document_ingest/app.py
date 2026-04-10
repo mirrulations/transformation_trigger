@@ -1,6 +1,6 @@
 import json
 import boto3
-from common.ingest import ingest_federal_document
+from common.ingest import ingest_federal_document, ingest_cfr_part
 
 try:
     from federal_register_fetch import fetch_document_json
@@ -39,6 +39,14 @@ def handler(event, context):
 
         print("Ingesting federal register document...")
         ingest_federal_document(file_content)
+
+        doc_data = json.loads(file_content)
+        cfr_refs = doc_data.get("cfr_references", [])
+        if cfr_refs:
+            print(f"Ingesting {len(cfr_refs)} CFR part reference(s)...")
+            for ref in cfr_refs:
+                ingest_cfr_part(ref["title"], ref["part"])
+
         print("Ingest complete!")
 
         return {
