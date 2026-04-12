@@ -1,6 +1,34 @@
 import json
+import os
 import boto3
 from common.ingest import ingest_docket
+
+try:
+    from frdocnum_extract import collect_frdocnums
+except ImportError:
+    from lambda_functions.sql_docket_ingest.frdocnum_extract import collect_frdocnums
+
+
+def _queue_federal_ingest_for_payload(file_content: str) -> None:
+    try:
+        data = json.loads(file_content)
+    except json.JSONDecodeError:
+        return
+    nums = collect_frdocnums(data)
+    if not nums:
+        return
+    fn = os.environ.get("SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION")
+    if not fn:
+        print(
+            "SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION not set; skipping federal register fan-out"
+        )
+        return
+    client = boto3.client("lambda")
+    for num in sorted(nums):
+        payload = json.dumps({"frdocnum": num}).encode("utf-8")
+        client.invoke(FunctionName=fn, InvocationType="Event", Payload=payload)
+        print(f"Queued federal register ingest for frdocnum={num!r}")
+
 
 def handler(event, context):
     """
@@ -31,7 +59,8 @@ def handler(event, context):
             print("ingesting")
             ingest_docket(file_content)
             print("ingest complete!")
-        
+            _queue_federal_ingest_for_payload(file_content)
+
         return {
             'statusCode': 200,
             'body': json.dumps({'message': 'Data processed successfully'})

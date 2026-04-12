@@ -139,6 +139,49 @@ def test_handler_with_empty_file(mock_s3_bucket):
         assert 'error' in json.loads(response['body'])
         assert 'File content is empty' in json.loads(response['body'])['error']
 
+def test_handler_queues_federal_ingest_for_frdocnums(mock_s3_bucket, aws_credentials):
+    """After docket ingest, each unique frdocnum/fdocnum triggers async federal Lambda."""
+    os.environ["SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION"] = "SQLFederalDocumentIngestFunction"
+    body = {
+        "data": {"id": "D-1"},
+        "included": [
+            {"type": "doc", "attributes": {"frdocnum": "2024-10001"}},
+            {"type": "doc", "attributes": {"fdocnum": "2024-10002"}},
+            {"type": "doc", "attributes": {"frdocnum": "2024-10001"}},
+        ],
+    }
+    mock_s3_bucket.put_object(
+        Bucket="test-bucket",
+        Key="raw-data/docket_D-1.json",
+        Body=json.dumps(body),
+    )
+    event = {"bucket": "test-bucket", "file_key": "raw-data/docket_D-1.json"}
+    mock_lambda_client = MagicMock()
+    real_boto_client = boto3.client
+
+    def _client(name, **kwargs):
+        if name == "lambda":
+            return mock_lambda_client
+        return real_boto_client(name, **kwargs)
+
+    with patch("lambda_functions.sql_docket_ingest.app.ingest_docket"):
+        with patch("lambda_functions.sql_docket_ingest.app.boto3.client", side_effect=_client):
+            response = handler(event, {})
+    assert response["statusCode"] == 200
+    assert mock_lambda_client.invoke.call_count == 2
+    payloads = []
+    for c in mock_lambda_client.invoke.call_args_list:
+        kwargs = c[1]
+        payloads.append(json.loads(kwargs["Payload"].decode("utf-8")))
+    nums = {p["frdocnum"] for p in payloads}
+    assert nums == {"2024-10001", "2024-10002"}
+    for c in mock_lambda_client.invoke.call_args_list:
+        kwargs = c[1]
+        assert kwargs["FunctionName"] == "SQLFederalDocumentIngestFunction"
+        assert kwargs["InvocationType"] == "Event"
+    del os.environ["SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION"]
+
+
 def test_handler_with_invalid_bucket(aws_credentials):
     """Test the handler with an invalid bucket"""
     # Create a new S3 client with moto
