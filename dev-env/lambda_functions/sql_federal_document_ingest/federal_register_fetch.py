@@ -3,9 +3,16 @@
 from __future__ import annotations
 
 import json
+import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
+
+try:
+    import certifi
+    _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    _SSL_CTX = ssl.create_default_context()
 
 # Public read API; Lambda must have outbound internet (e.g. NAT) if run inside a private VPC subnet.
 _BASE = "https://www.federalregister.gov/api/v1/documents"
@@ -23,7 +30,7 @@ def fetch_document_json(frdocnum: str) -> str:
         method="GET",
     )
     try:
-        with urllib.request.urlopen(req, timeout=90) as resp:
+        with urllib.request.urlopen(req, timeout=90, context=_SSL_CTX) as resp:
             return resp.read().decode("utf-8")
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
