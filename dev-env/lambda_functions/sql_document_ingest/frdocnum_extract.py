@@ -14,7 +14,7 @@ def collect_frdocnums(obj: Any) -> Set[str]:
     def walk(node: Any) -> None:
         if isinstance(node, dict):
             for key, val in node.items():
-                if key in _FR_KEYS and val is not None:
+                if key.lower() in _FR_KEYS and val is not None:
                     s = str(val).strip()
                     if s:
                         found.add(s)

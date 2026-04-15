@@ -1,6 +1,6 @@
 import json
 import boto3
-from common.ingest import ingest_federal_document
+from common.ingest import ingest_federal_document, ingest_cfr_part
 
 try:
     from federal_register_fetch import fetch_document_json
@@ -39,6 +39,10 @@ def handler(event, context):
 
         print("Ingesting federal register document...")
         ingest_federal_document(file_content)
+
+        print("Ingesting CFR parts...")
+        ingest_cfr_part(file_content)
+
         print("Ingest complete!")
 
         return {
