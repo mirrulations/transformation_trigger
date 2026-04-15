@@ -15,11 +15,11 @@ Globals:
           OPENSEARCH_INITIAL_ADMIN_PASSWORD: ""
           OPENSEARCH_HOST: ""
           OPENSEARCH_PORT: ""
-          POSTGRES_PORT: ""
-          POSTGRES_DB: ""
-          POSTGRES_PASSWORD: ""
-          POSTGRES_HOST: ""
-          POSTGRES_USER: ""
+          POSTGRES_PORT: "5432"
+          POSTGRES_DB: "mirrulations"
+          POSTGRES_PASSWORD: "testpass"
+          POSTGRES_HOST: "local-postgres-test"
+          POSTGRES_USER: "testuser"
 
 Parameters:
   VpcId:

@@ -118,6 +118,49 @@ def test_orch_lambda_docket_json(aws_credentials):
     assert result['statusCode'] == 200
     assert 'Lambda function invoked successfully' in result['body']
 
+
+@mock_aws
+def test_orch_lambda_federal_register_json(aws_credentials):
+    """Routes raw-data/.../federal_register/...json to SQLFederalDocumentIngestFunction."""
+    s3 = boto3.client("s3", region_name="us-east-1")
+    s3.create_bucket(Bucket="test-bucket")
+    s3.put_object(
+        Bucket="test-bucket",
+        Key="raw-data/APHIS/APHIS-2022/federal_register/some-doc.json",
+        Body='{"test": "data"}',
+    )
+    event = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {
+                        "key": "raw-data/APHIS/APHIS-2022/federal_register/some-doc.json"
+                    },
+                }
+            }
+        ]
+    }
+    with patch("lambda_functions.orchestrator.app.boto3.client") as mock_boto:
+        mock_lambda = mock_boto.return_value
+        mock_lambda.invoke.return_value = {"StatusCode": 200}
+        result = orch_lambda(event, {})
+        mock_boto.assert_called_once_with("lambda")
+        expected_payload = json.dumps(
+            {
+                "bucket": "test-bucket",
+                "file_key": "raw-data/APHIS/APHIS-2022/federal_register/some-doc.json",
+            }
+        )
+        mock_lambda.invoke.assert_called_once_with(
+            FunctionName="SQLFederalDocumentIngestFunction",
+            InvocationType="RequestResponse",
+            Payload=expected_payload,
+        )
+    assert result["statusCode"] == 200
+    assert "Lambda function invoked successfully" in result["body"]
+
+
 @mock_aws
 def test_orch_lambda_non_docket_file(aws_credentials):
     """Test orch_lambda with a non-docket file"""

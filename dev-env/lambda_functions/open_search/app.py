@@ -2,7 +2,6 @@ import json
 import boto3
 from common.ingest import ingest_comment_opensearch
 
-
 def handler(event, context):
    """
    Lambda handler that processes a comment.json file when an s3 event contains a comment.json and is passed to the mirrulations bucket. This function is invoked by the orchestrator function and is responsible for ingesting the comment.json file into OpenSearch database.  
