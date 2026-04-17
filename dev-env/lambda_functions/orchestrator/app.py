@@ -1,6 +1,9 @@
 import boto3
 import json
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 
 def extractS3(event):
@@ -172,11 +175,13 @@ def orch_lambda(event, context):
             }
 
     except ValueError as e:
+        logger.warning("Orchestrator bad request: %s", e)
         return {
             'statusCode': 400,
             'body': json.dumps(f'Error processing request: {str(e)}')
         }
     except Exception as e:
+        logger.exception("Orchestrator failed")
         return {
             'statusCode': 500,
             'body': json.dumps(f'Unexpected error: {str(e)}')
