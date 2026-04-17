@@ -1,6 +1,9 @@
 import json
+import logging
 import boto3
 from common.ingest import ingest_comment_opensearch
+
+logger = logging.getLogger(__name__)
 
 
 def handler(event, context):
@@ -40,7 +43,7 @@ def handler(event, context):
        }
        
    except Exception as e:
-       # logger.error(f"Error processing event: {str(e)}")
+       logger.exception("OpenSearchCommentIngest failed")
        return {
            'statusCode': 500,
            'body': json.dumps({'error': str(e)})

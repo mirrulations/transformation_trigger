@@ -1,6 +1,15 @@
 import boto3
 import json
+import logging
 import os
+
+logger = logging.getLogger(__name__)
+
+
+def _is_html_summary_key(file_key):
+    """True if key ends with .htm or .html (case-insensitive)."""
+    lower = file_key.lower()
+    return lower.endswith(".htm") or lower.endswith(".html")
 
 
 def extractS3(event):
@@ -30,6 +39,7 @@ def extractS3(event):
         "bucket": bucket_name,
         "file_key": object_key
     }
+
 
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
@@ -66,6 +76,9 @@ def orch_lambda(event, context):
     opensearch_text_extract_function = os.environ.get("OPENSEARCH_TEXT_EXTRACT_FUNCTION")
     if not opensearch_text_extract_function:
         raise Exception("OpenSearch text extract function name is not set in the environment variables")
+    sql_fed_docs_function = os.environ.get("SQL_FEDERAL_DOCUMENT_INGEST_FUNCTION")
+    if not sql_fed_docs_function:
+        raise Exception("Federal register ingest function name is not set in the environment variables")
 
     
 
@@ -138,8 +151,8 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
-        elif s3dict['file_key'].endswith('.htm'):
-            print("htm file found!")
+        elif _is_html_summary_key(s3dict['file_key']):
+            print("htm/html file found!")
             response = lambda_client.invoke(
                 FunctionName=htm_summary_function,
                 InvocationType='RequestResponse',
@@ -150,6 +163,17 @@ def orch_lambda(event, context):
                 'body': json.dumps('Lambda function invoked successfully')
             }
             
+        elif s3dict['file_key'].endswith('.json') and 'federal_register' in s3dict['file_key']:
+            print("federal register document json found!")
+            response = lambda_client.invoke(
+                FunctionName=sql_fed_docs_function,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(s3dict)
+            )
+            return {
+                'statusCode': 200,
+                'body': json.dumps('Lambda function invoked successfully')
+            }
         else:
             print("File not processed")
             return {
@@ -158,11 +182,13 @@ def orch_lambda(event, context):
             }
 
     except ValueError as e:
+        logger.warning("Orchestrator bad request: %s", e)
         return {
             'statusCode': 400,
             'body': json.dumps(f'Error processing request: {str(e)}')
         }
     except Exception as e:
+        logger.exception("Orchestrator failed")
         return {
             'statusCode': 500,
             'body': json.dumps(f'Unexpected error: {str(e)}')

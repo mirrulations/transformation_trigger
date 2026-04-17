@@ -241,5 +241,8 @@ $RECYCLE.BIN/
 
 */build/*
 
-# SAM artifact build folder 
+# SAM artifact build folder
 .aws-sam/
+
+# Local testing env overrides (contains DB credentials, never commit)
+dev-env/env.json
