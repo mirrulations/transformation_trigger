@@ -162,6 +162,47 @@ def test_orch_lambda_federal_register_json(aws_credentials):
 
 
 @mock_aws
+def test_orch_lambda_html_routes_to_htm_summary(aws_credentials):
+    """raw-data keys ending in .html (case-insensitive) invoke HTMSummaryIngestFunction."""
+    s3 = boto3.client('s3', region_name='us-east-1')
+    s3.create_bucket(Bucket='test-bucket')
+    s3.put_object(
+        Bucket='test-bucket',
+        Key='raw-data/AGY/DOCKET-1/documents/summary.HTML',
+        Body='<html><body>SUMMARY: Test.</body></html>'
+    )
+
+    event = {
+        'Records': [
+            {
+                's3': {
+                    'bucket': {'name': 'test-bucket'},
+                    'object': {'key': 'raw-data/AGY/DOCKET-1/documents/summary.HTML'}
+                }
+            }
+        ]
+    }
+
+    with patch('lambda_functions.orchestrator.app.boto3.client') as mock_boto:
+        mock_lambda = mock_boto.return_value
+        mock_lambda.invoke.return_value = {'StatusCode': 200}
+
+        result = orch_lambda(event, {})
+
+        expected_payload = json.dumps({
+            'bucket': 'test-bucket',
+            'file_key': 'raw-data/AGY/DOCKET-1/documents/summary.HTML'
+        })
+        mock_lambda.invoke.assert_called_once_with(
+            FunctionName='HTMSummaryIngestFunction',
+            InvocationType='RequestResponse',
+            Payload=expected_payload
+        )
+
+    assert result['statusCode'] == 200
+    assert 'Lambda function invoked successfully' in result['body']
+
+@mock_aws
 def test_orch_lambda_non_docket_file(aws_credentials):
     """Test orch_lambda with a non-docket file"""
     # Create test S3 bucket and object

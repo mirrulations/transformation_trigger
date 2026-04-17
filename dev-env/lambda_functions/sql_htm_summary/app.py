@@ -7,6 +7,13 @@ from common.ingest import ingest_summary
 
 logger = logging.getLogger(__name__)
 
+
+def _is_html_summary_key(file_key):
+    """True if key ends with .htm or .html (case-insensitive)."""
+    lower = file_key.lower()
+    return lower.endswith(".htm") or lower.endswith(".html")
+
+
 def handler(event, context):
     """
     Lambda handler that processes an .htm file from S3,
@@ -47,13 +54,13 @@ def handler(event, context):
         else:
             raise ValueError("Invalid file key format. Unable to extract docket-id.")
 
-        if file_key.lower().endswith('.htm'):
+        if _is_html_summary_key(file_key):
             # Use BeautifulSoup to parse the HTML content
             soup = BeautifulSoup(file_content, 'html.parser')
 
-            # Extract the plain text from the HTM
+            # Extract the plain text from the HTM/HTML
             plain_text = soup.get_text()
-            print("Extracted plain text from HTM.")
+            print("Extracted plain text from HTM/HTML.")
 
             # Find the "SUMMARY:" section
             summary_start = plain_text.find("SUMMARY:")

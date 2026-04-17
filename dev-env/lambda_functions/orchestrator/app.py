@@ -6,6 +6,12 @@ import os
 logger = logging.getLogger(__name__)
 
 
+def _is_html_summary_key(file_key):
+    """True if key ends with .htm or .html (case-insensitive)."""
+    lower = file_key.lower()
+    return lower.endswith(".htm") or lower.endswith(".html")
+
+
 def extractS3(event):
     """
     extractS3 function to extract S3 bucket name and object key from the event.
@@ -33,6 +39,7 @@ def extractS3(event):
         "bucket": bucket_name,
         "file_key": object_key
     }
+
 
 def get_lambda_client():
     # AWS_SAM_LOCAL is set to "true" when running locally via SAM CLI.
@@ -144,8 +151,8 @@ def orch_lambda(event, context):
                 'statusCode': 200,
                 'body': json.dumps('Lambda function invoked successfully')
             }
-        elif s3dict['file_key'].endswith('.htm'):
-            print("htm file found!")
+        elif _is_html_summary_key(s3dict['file_key']):
+            print("htm/html file found!")
             response = lambda_client.invoke(
                 FunctionName=htm_summary_function,
                 InvocationType='RequestResponse',
