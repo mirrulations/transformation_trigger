@@ -1,8 +1,11 @@
 import json
+import logging
 import boto3
 from bs4 import BeautifulSoup
 import re
 from common.ingest import ingest_summary
+
+logger = logging.getLogger(__name__)
 
 def handler(event, context):
     """
@@ -95,7 +98,7 @@ def handler(event, context):
             }
     
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.exception("HTMSummaryIngest failed")
         return {
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})

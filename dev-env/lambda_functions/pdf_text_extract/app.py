@@ -1,8 +1,11 @@
 import json
+import logging
 import boto3
 import io
 from pypdf import PdfReader as Re
 from common.ingest import ingest_extracted_text
+
+logger = logging.getLogger(__name__)
 
 
 def extract_text(file_stream):
@@ -10,7 +13,7 @@ def extract_text(file_stream):
     try:
         reader = Re(file_stream)
     except Exception as e:
-        print(f"Error reading PDF file: {e}")
+        logger.exception("PDF read failed")
         return {
             'statusCode': 422,
             'body': json.dumps({'error': str(e)})
@@ -27,7 +30,7 @@ def s3_saver(file_stream, bucket, file_key, s3):
         s3.upload_fileobj(file_stream, bucket, file_key)
         print(f"File saved to S3 bucket {bucket} with key {file_key}")
     except Exception as e:
-        print(f"Error saving file to S3: {e}")
+        logger.exception("S3 upload failed in pdf_text_extract")
         return {
             'statusCode': 422,
             'body': json.dumps({'error': str(e)})
@@ -100,6 +103,7 @@ def handler(event, context):
         }
 
     except Exception as e:
+        logger.exception("OpenSearchTextExtract handler failed")
         return {
             'statusCode': 400,
             'body': json.dumps({'error': str(e)})
