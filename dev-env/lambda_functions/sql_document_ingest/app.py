@@ -1,7 +1,10 @@
 import json
+import logging
 import os
 import boto3
 from common.ingest import ingest_document
+
+logger = logging.getLogger(__name__)
 
 try:
     from frdocnum_extract import collect_frdocnums
@@ -76,7 +79,7 @@ def handler(event, context):
         }
         
     except Exception as e:
-        # logger.error(f"Error processing event: {str(e)}")
+        logger.exception("SQLDocumentIngest failed")
         return {
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})

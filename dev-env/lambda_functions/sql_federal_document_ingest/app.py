@@ -1,6 +1,9 @@
 import json
+import logging
 import boto3
 from common.ingest import ingest_federal_document, ingest_cfr_part
+
+logger = logging.getLogger(__name__)
 
 try:
     from federal_register_fetch import fetch_document_json
@@ -51,6 +54,7 @@ def handler(event, context):
         }
 
     except Exception as e:
+        logger.exception("SQLFederalDocumentIngest failed")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": str(e)}),
