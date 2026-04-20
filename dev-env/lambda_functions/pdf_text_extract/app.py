@@ -10,16 +10,15 @@ logger = logging.getLogger(__name__)
 
 def extract_text(file_stream):
     """Extract text from a PDF file stream and return as a string."""
-    try:
-        reader = Re(file_stream)
-    except Exception as e:
-        logger.exception("PDF read failed")
-        return {
-            'statusCode': 422,
-            'body': json.dumps({'error': str(e)})
-        } 
-    extracted_text = " ".join([page.extract_text().replace("\n", " ") for page in reader.pages if page.extract_text()])
-    return extracted_text
+    reader = Re(file_stream)
+    extracted_text = " ".join(
+        [
+            page.extract_text().replace("\n", " ")
+            for page in reader.pages
+            if page.extract_text()
+        ]
+    )
+    return extracted_text.strip()
 
 
 def s3_saver(file_stream, bucket, file_key, s3):
@@ -58,8 +57,36 @@ def handler(event, context):
         file_obj = s3.get_object(Bucket=event['bucket'], Key=event['file_key'])
         file_content = file_obj['Body'].read()
 
+        # Guardrail: many "pdfs" are actually HTML error pages.
+        # A real PDF typically starts with "%PDF-".
+        if not file_content or not file_content.startswith(b"%PDF-"):
+            prefix = file_content[:64] if file_content else b""
+            logger.error(
+                "Object is not a valid PDF (prefix=%r) bucket=%s key=%s",
+                prefix,
+                event.get("bucket"),
+                event.get("file_key"),
+            )
+            return {
+                "statusCode": 415,
+                "body": json.dumps(
+                    {
+                        "error": "Object is not a valid PDF",
+                        "bucket": event.get("bucket"),
+                        "file_key": event.get("file_key"),
+                    }
+                ),
+            }
+
         # Step 2: Extract text from the PDF
-        extracted_text = extract_text(io.BytesIO(file_content))
+        try:
+            extracted_text = extract_text(io.BytesIO(file_content))
+        except Exception as e:
+            logger.exception("PDF read failed")
+            return {
+                "statusCode": 422,
+                "body": json.dumps({"error": str(e)}),
+            }
 
         if not extracted_text:
             raise ValueError("Extracted text is empty")

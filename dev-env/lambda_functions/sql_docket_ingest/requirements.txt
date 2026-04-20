@@ -1,3 +1,2 @@
 psycopg[binary]
-logger
 boto3

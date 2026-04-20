@@ -73,7 +73,7 @@ Resources:
       Description: "Common code shared among multiple Lambda functions"
       ContentUri: common_layer
       CompatibleRuntimes:
-        - python3.13
+        - python3.12
 
   # Orchestrator Lambda (Triggered by SNS notification of S3 PutObject)
   OrchestratorFunction:
@@ -82,7 +82,7 @@ Resources:
       FunctionName: !Sub "${AWS::StackName}-OrchestratorFunction"
       CodeUri: lambda_functions/orchestrator/
       Handler: app.orch_lambda
-      Runtime: python3.13
+      Runtime: python3.12
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3ReadPolicy:  # Allows this Lambda to read from S3
@@ -139,7 +139,7 @@ Resources:
     Properties:
       CodeUri: lambda_functions/sql_docket_ingest/
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
@@ -180,7 +180,7 @@ Resources:
     Properties:
       CodeUri: lambda_functions/sql_document_ingest/
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
@@ -220,7 +220,7 @@ Resources:
     Properties:
       CodeUri: lambda_functions/sql_federal_document_ingest/
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
@@ -255,7 +255,7 @@ Resources:
     Properties:
       CodeUri: lambda_functions/sql_comment_ingest/
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
@@ -290,7 +290,7 @@ Resources:
     Properties:
       CodeUri: lambda_functions/sql_htm_summary/
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
@@ -325,7 +325,7 @@ Resources:
       CodeUri: lambda_functions/open_search/
 
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       VpcConfig:
         SecurityGroupIds:
           - sg-03e2bf8d3930f3c42
@@ -350,7 +350,7 @@ Resources:
     Properties:
       CodeUri: lambda_functions/pdf_text_extract/
       Handler: app.handler
-      Runtime: python3.13
+      Runtime: python3.12
       Timeout: 180
       VpcConfig:
         SecurityGroupIds:
