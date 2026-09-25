@@ -1,3 +1,4 @@
 pypdf
 boto3
 typing_extensions
+psycopg[binary]
